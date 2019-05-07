@@ -4,3 +4,15 @@
 
 ### Introduction
 
+setwd("")
+
+library(devtools)
+library(ggplot2)
+library(plyr)
+library(scales)
+library(grid)
+library(ggbiplot)
+library(ggfortify)
+library(readxl)
+library(tibble)
+library(ggrepel)
