@@ -6,7 +6,7 @@
 
 setwd("")
 
-library(devtools)
+library(devtools)\n
 library(ggplot2)
 library(plyr)
 library(scales)
