@@ -7,12 +7,12 @@
 setwd("")
 
 library(devtools)\n
-library(ggplot2)
-library(plyr)
-library(scales)
-library(grid)
-library(ggbiplot)
-library(ggfortify)
-library(readxl)
-library(tibble)
-library(ggrepel)
+library(ggplot2)\n
+library(plyr)\n
+library(scales)\n
+library(grid)\n
+library(ggbiplot)\n
+library(ggfortify)\n
+library(readxl)\n
+library(tibble)\n
+library(ggrepel)\n
