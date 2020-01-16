@@ -1,0 +1,12 @@
+
+### **How does a K-fold cross validation work?**
+\ 
+k-fold cross validation is a basic measure to  estimate the accuracy of  a machine learning model. It consists of the following steps:  
+
+  1) Randomly redistribute the dataset to aboid bias from the introduction of data.  
+  2) Subset the dataset in different folders, each with equal number of data. Percentage of data in each folder depends on different factors such as the size of the dataset or analyst decision (10%, 20%, 25%, 50%, etc.).  
+  3) Retain first group as test datset and train the model with the rest of the groups. Evaluate the model using the test data set and retain the evaluation score.  
+  4) Train a new model retaining the second group as test dataset. Evaluate and retain new evaluation score.  
+  5) Repeat process subsequentially with all subgroups.  
+  6) Calculate average of the evaluation scores from all subgroups. This concludes one cycle.  
+  7) Since each cycle depends on the random redistribution of step 1, the cycles must be repeated. Number of repetition of cycles varies from 10 to 100 depending on analyst decision.  
