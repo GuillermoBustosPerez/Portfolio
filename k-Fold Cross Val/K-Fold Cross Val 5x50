@@ -10,3 +10,7 @@ k-fold cross validation is a basic measure to  estimate the accuracy of  a machi
   5) Repeat process subsequentially with all subgroups.  
   6) Calculate average of the evaluation scores from all subgroups. This concludes one cycle.  
   7) Since each cycle depends on the random redistribution of step 1, the cycles must be repeated. Number of repetition of cycles varies from 10 to 100 depending on analyst decision.  
+
+Althought many packages (such as the caret package) contain build in functions to carry out the cross validation is important to be able to replicate thee code to acces internal information. 
+The following cell contains code to perform K-fold cross validation dividing the data set in 5 subsets and
+repeating the cycles 50 times:
