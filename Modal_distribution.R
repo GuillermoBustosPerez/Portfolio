@@ -1,7 +1,7 @@
 
-#### This is function to calculate the mValue of a distribution using an R script
-#### two parameters are given: the distribution values to measure and the sistem 
-#### to calculate the number of bins: SQRT or FD
+#### This is a function to calculate the mValue of a distribution using an R script
+#### two parameters are given: 1) the distribution values to measure and 
+#### 2) the sistem to calculate the number of bins in the historgrams: SQRT or FD
 
 mValue = function(To.Measure, bin_system){
 
