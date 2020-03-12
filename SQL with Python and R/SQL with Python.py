@@ -1,4 +1,6 @@
 ''' 
+A basic system for quering and storing data from SQL files into pandas dataframes
+
 SQL data from 
 https://www.kaggle.com/harsha547/ipldatabase
 '''
