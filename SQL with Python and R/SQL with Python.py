@@ -16,9 +16,9 @@ print(table_names)
 
 # Basic quering of a relational database and store as a pandas dataframe
 with engine.connect() as con :
-  rs = con.execute("SELECT * FROM Player")
-  df_players = pd.DataFrame(rs.fetchall())
-  df_players.columns = rs.keys()
+  rqst = con.execute("SELECT * FROM Player")
+  df_players = pd.DataFrame(rqst.fetchall())
+  df_players.columns = rqst.keys()
 
 # Inner join from two data databases and into a pandas dataframe
 df_Test = pd.read_sql_query(
