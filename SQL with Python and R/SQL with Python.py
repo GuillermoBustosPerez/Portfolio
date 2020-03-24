@@ -8,7 +8,7 @@ https://www.kaggle.com/harsha547/ipldatabase
 import pandas as pd
 from sqlalchemy import create_engine
 
-# Set up engine and get relational databases names
+# Set up engine and get relational database table names
 engine = create_engine('sqlite:///Data/database.sqlite')
 
 table_names = engine.table_names()
@@ -21,9 +21,15 @@ with engine.connect() as con :
   df_players.columns = rqst.keys()
 
 # Inner join from two data databases and into a pandas dataframe
-df_Test = pd.read_sql_query(
+Players_Country = pd.read_sql_query(
   "SELECT * FROM Player INNER JOIN Country on Player.Country_Name = Country.Country_Id", engine)
 
 #...and print first five rows
-print(df_Test.head())
+print(Players_Country.head())
 
+
+# Inner join of dataframes Players and Country using Pandas
+players_countries = pd.merge(df_players, df_country,
+left_on = 'Country_Name', right_on = 'Country_Id')
+
+print(players_countries.head())
