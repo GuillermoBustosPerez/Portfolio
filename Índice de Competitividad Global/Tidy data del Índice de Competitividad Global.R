@@ -63,3 +63,22 @@ Comp_2019 <- Comp_2019 %>%
 Comp_2019 <- Comp_2019 %>% filter(`Series type` != "Label (does not enter calculation)" &
                                     `Series type` != "Index")
                       
+##### Last round of filtering ####
+
+# Create column Pillar as a copy of `Series Name`
+# Crear columna Pillar como copia de Series Name
+Comp_2019$Pillar <- Comp_2019$`Series name`
+
+# Assign Na if it doesent contain "pillar"
+# Asignar Na si no contiene "pillar"
+Comp_2019$Pillar <- ifelse(grepl("pillar" , Comp_2019$Pillar), Comp_2019$Pillar, NA)
+
+# Foreward autocomplete
+# Autocompletado hacia adelante
+library(zoo)
+Comp_2019$Pillar <- na.locf(Comp_2019$Pillar)
+
+# Reorder columns
+# Reordenar columnas
+Comp_2019 <- Comp_2019 %>% select("Edition", "Series type", 
+            "Series name", "Pillar", "Series units", Angola: last_col())
