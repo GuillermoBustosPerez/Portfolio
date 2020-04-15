@@ -58,7 +58,7 @@ Averages <- Comp_2019 %>% select(`Series name`, `Series type`,
 Comp_2019 <- Comp_2019 %>% 
   select(-c(`Europe and North America`:`Sample average`))
         
-# Filter cases non desirable
+# Filter non desirable cases 
 # Filtrar casos no apropiados (ruido)
 Comp_2019 <- Comp_2019 %>% filter(`Series type` != "Label (does not enter calculation)" &
                                     `Series type` != "Index")
