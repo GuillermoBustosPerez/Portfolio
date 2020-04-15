@@ -21,4 +21,16 @@ Comp_2019 <- Comp_2019 %>% filter(
             "Series code (if applicable)", "Series order"
             )) 
 
+# Boolean vector to check if all rows from 6th column to the end are Na's
+# Vector booleano indcando si faltan todos los datos de la fila desde la columna 6 hasta el final
+ind <- apply(Comp_2019[, 6:ncol(Comp_2019)], 1, function(x) all(is.na(x)))
+
+# Filtrar los datos usando el vector booleano
+Comp_2019 <- Comp_2019[ !ind, ]
+
+# Retirar duplicados de "Series Name", 
+# conservando prioritariamente aquellos en los que Attribute = SCORE
+Comp_2019 <- 
+  setDT(Comp_2019)[, .SD[which.min(factor(Attribute, levels = c("SCORE","VALUE")))], 
+                              by=.(`Series name`)]
 
