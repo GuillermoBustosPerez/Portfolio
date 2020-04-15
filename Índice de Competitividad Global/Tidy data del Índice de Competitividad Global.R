@@ -49,3 +49,17 @@ Comp_2019 <- Comp_2019 %>%  select(c("Edition", "Series type",
 # Join Data frame of cilumns and countries
 # Unir indicadores numéricos de cada país con el orden apropiado de columnas
 Comp_2019 <- cbind(Comp_2019, Countries)
+
+# New data frame with regional averages and remove from the one of countries                      
+# Nuevo data frame con los promedios de cada región y liminar los promedios regionales del data frame con los países 
+Averages <- Comp_2019 %>% select(`Series name`, `Series type`,
+                            `Europe and North America`:`Sample average`) 
+
+Comp_2019 <- Comp_2019 %>% 
+  select(-c(`Europe and North America`:`Sample average`))
+        
+# Filter cases non desirable
+# Filtrar casos no apropiados (ruido)
+Comp_2019 <- Comp_2019 %>% filter(`Series type` != "Label (does not enter calculation)" &
+                                    `Series type` != "Index")
+                      
