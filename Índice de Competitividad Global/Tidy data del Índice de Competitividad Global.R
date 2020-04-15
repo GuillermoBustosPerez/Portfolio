@@ -35,3 +35,17 @@ Comp_2019 <-
   setDT(Comp_2019)[, .SD[which.min(factor(Attribute, levels = c("SCORE","VALUE")))], 
                               by=.(`Series name`)]
 
+#### Second rownd of filtering ####
+# Values for each country into a new dataframe and transform into numeric
+# Indicadores de cada país en un data frame nuevo y hacerlo numérico
+Countries <- Comp_2019 %>% select(c(Angola: last_col()))
+Countries[] <- lapply(Countries , function(x) as.numeric(as.character(x)))
+
+# Reorder columns
+# Reordenar columnas
+Comp_2019 <- Comp_2019 %>%  select(c("Edition", "Series type", 
+               "Series name", "Series units", "Attribute"))
+
+# Join Data frame of cilumns and countries
+# Unir indicadores numéricos de cada país con el orden apropiado de columnas
+Comp_2019 <- cbind(Comp_2019, Countries)
