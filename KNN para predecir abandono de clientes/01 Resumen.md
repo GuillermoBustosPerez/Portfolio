@@ -9,7 +9,7 @@ El objetivo es entrenar un algoritmo de KNN que permita identificar clientes que
   * Equilibrado del dataset   
   * Normalización de los datos y creación del train set y hold-out set  
   * Determinación del **valor óptimo de K**   
-  * Entrenamiento del modelo y estimaciones de precisión   
+  * Entrenamiento del **modelo KNN** y estimación de precisión   
   * Prueba sobre el hold-out set   
 
 
