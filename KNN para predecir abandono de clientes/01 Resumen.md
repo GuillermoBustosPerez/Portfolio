@@ -15,8 +15,11 @@ El objetivo es entrenar un algoritmo de KNN que permita identificar clientes que
 
 ## Resultados:  
 
-Measure  | K-fold  | Hold-Out  |
+Measure  | K-fold  | Hold-Out set |
 ----------|--------|-----------|
 Accuracy  | 0.7485 |  0.7527   |
 Balanced Accuracy | 0.7490  | 0.7508  | 
 Sensitivity |  0.8541  | 0.8658 |  
+No Information Rate | 0.502  | 0.508  |  
+Sensitivity | 0.8541  | 0.8658  | 
+Specificity | 0.6439  | 0.6359  | 
