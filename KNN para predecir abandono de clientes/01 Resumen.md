@@ -5,10 +5,10 @@ El objetivo es entrenar un algoritmo de KNN que permita identificar clientes que
 ## Flujo de trabajo:  
 
   * Exploración de los datos y eliminado de variables no útiles  
-  * Transformación de variables categóricas usando dummy coding  
+  * Transformación de variables categóricas usando **dummy coding**  
   * Equilibrado del dataset   
   * Normalización de los datos y creación del train set y hold-out set  
-  * Deteerminación del valor óptimo de K   
+  * Determinación del **valor óptimo de K**   
   * Entrenamiento del modelo y estimaciones de precisión   
   * Prueba sobre el hold-out set   
 
