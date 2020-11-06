@@ -1,5 +1,26 @@
 ## Introducción  
 
-Una de las mejores formas de obtener **experiencia y práctica** en la implementación de algoritmos de Machine Learning es realizar **proyectos personales y ejemplos prácticos** presentes en manuales y cursos de programación, estadística y Machine Learning. Este apartado presenta las soluciones a problemas de ejemplos de código presentes en diferentes manuales y cursos de programación.
+En este ejemplo de código se presenta un análisis de **regresión por medio de redes neuronales** para modelar la fuerza del cemento. El ejemplo corresponde al capítulo de Lantz (2019) sobre redes nueronales, mientras que el dataset procede de Yeh (1998) y está disponible en: http://archive.ics.uci.edu/ml/datasets/Concrete+Compressive+Strength.  
 
-Los ejemplos presentados **no siguen extríctamente las soluciones** de los manuales/cursos de los que se extrayeron. Esto se debe a que muchos ejemplos son demasiado simples o carecen de procesos de validación adecuados (por ejemplo, en muchos casos tan solo se hace una simple validación cruzada). Por ello, se emplea los datasets de los manuales y los objetivos, pero **se añaden procesos extra, como la K-fold cross validation, grid search, datos adicionales de la precisión del modelo, etc**.
+## Flujo de trabajo:   
+
+El objetivo es un **análisis de regresión** para modelar la fuerza del cemento en base a determinados componentes. El flujo de trabajo seguido es el siguiente:  
+
+  1) Carga y procesamiento de los datos  
+  2) **Normalización de los datos**  
+  3) **Barajado de los datos** para evitar sesgos en la generación del train/test sets  
+  4) Entrenamiento de una **red neuronal** usando el paquete **neuralnet**   
+  5) Validación y precisado del modelo   
+  6) Selección y entrenamiento de un modelo con **mejores hiperparámetros**  
+  7) Validación y precisado del nuevo modelo
+
+## Resultados  
+
+El mejor modelo de 5 *hidden layers* presenta una *r* de 0.9390418 ($r^2$ de 8818).   
+
+## Bibliografía  
+
+Lantz, B., 2019. Machine Learning with R, Third Edition. ed. Packt Publishing Ltd., Birmingham.   
+
+Yeh IC. Modeling of strength of high performance concrete using artificial neural networks. Cement and Concrete Research. 1998; 28:1797-1808  
+
