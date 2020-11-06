@@ -16,7 +16,7 @@ El objetivo es un **análisis de regresión** para modelar la fuerza del cemento
 
 ## Resultados  
 
-El mejor modelo de 5 *hidden layers* presenta una *r* de 0.9390418 ($r^2$ de 8818).   
+El mejor modelo de 5 *hidden layers* presenta una *r* de 0.9390418 ($img src="https://render.githubusercontent.com/render/math?math=r^2$ de 8818).   
 
 ## Bibliografía  
 
