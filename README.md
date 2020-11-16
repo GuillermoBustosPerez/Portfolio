@@ -3,7 +3,7 @@
 ## Introducción  
 
 Este archivo contiene ejemplos de códigos para el curriculum vitae. Los ejemplos presentados incluyen ejemplos de:  
-  * Exracción, limpieza y rediseño de datos  
+  * **Data munging/wrangling**: exracción, limpieza y rediseño de datos  
   * Análisis estadístico de datos y representación gráfica  
   * Machine Learning aplicado a análisis de regresión  
   * Machine Learning aplicado a procesos de clasificación  
