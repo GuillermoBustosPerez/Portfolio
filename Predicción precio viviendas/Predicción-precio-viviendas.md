@@ -834,7 +834,7 @@ de la regresión lineal:
     es lineal.
       - Por consiguiente, si la regresión lineal simple asume que:
 
-<img src="https://render.githubusercontent.com/render/math?math=Y = \beta_0 + \beta_1X + \epsilon">
+<img src="https://render.githubusercontent.com/render/math?math=Y=\beta_0+\beta_1X+\epsilon">
 
 ``` r
 colnames(housing)
