@@ -1,12 +1,28 @@
-Untitled
+Predicción precio viviendas
 ================
 
 ## Introducción
+
+Mencionabamos en el inicio que se trata de un **ejercicio clásico de
+regeresión** (predecir un outcome numérico).
+
+En este caso vamos a emplear la base de datos de viviendas de King
+County (Washington State, USA). Se trata de un datset de 21613 viviendas
+con 21 variables asociadas al precio.
+
+El dataset está disponible en:  
+<https://www.kaggle.com/shivachandel/kc-house-data>
 
 ``` r
 # Read in the data
 housing <- read.csv("Data/kc_house_data.csv")
 ```
+
+``` r
+dim(housing)
+```
+
+    ## [1] 21613    21
 
 ``` r
 kable(housing[1:5,])
