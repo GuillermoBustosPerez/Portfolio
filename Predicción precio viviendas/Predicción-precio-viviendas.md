@@ -11,7 +11,8 @@ viviendas de King County (Washington State, USA). Se trata de un datset
 de 21613 viviendas con 21 variables asociadas al precio. Las ventas se
 produjeron entre mayo de 2014 y mayo de 2015.
 
-El dataset está disponible en:  
+Empezamos por cargar el conjunto de librerías de **tidyverse** (Wickham,
+2017; Wickham et al., 2019). El dataset está disponible en:  
 <https://www.kaggle.com/shivachandel/kc-house-data>
 
 ``` r
@@ -1030,7 +1031,7 @@ get_model_formula(10, regfit_full, "price")
 
     ## price ~ bedrooms + bathrooms + sqft_living + floors + waterfront + 
     ##     view + condition + grade + yr_built + sqft_lot15
-    ## <environment: 0x000000000d0bf210>
+    ## <environment: 0x000000000d0c76a8>
 
 ``` r
 frmla <- "price ~ bedrooms + bathrooms + sqft_living + floors + waterfront + view + condition + grade + yr_built + sqft_lot15"
@@ -1076,3 +1077,13 @@ York, New York, NY. <https://doi.org/10.1007/978-1-4614-7138-7>
 Lumley T. based on Fortran code by Alan Miller 2020. leaps:Regression
 Subset Selection. R package version 3.1.
 <https://CRAN.R-project.org/package=leaps>
+
+Wickham, H., 2017. Easily Install and Load the “Tidyverse”. R package
+version.
+
+Wickham, H., Averick, M., Bryan, J., Chang, W., McGowan, L., François,
+R., Grolemund, G., Hayes, A., Henry, L., Hester, J., Kuhn, M., Pedersen,
+T., Miller, E., Bache, S., Müller, K., Ooms, J., Robinson, D., Seidel,
+D., Spinu, V., Takahashi, K., Vaughan, D., Wilke, C., Woo, K., Yutani,
+H., 2019. Welcome to the Tidyverse. Journal of Open Source Software 4,
+1686. <https://doi.org/10.21105/joss.01686>
