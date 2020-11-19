@@ -19,12 +19,14 @@ housing <- read.csv("Data/kc_house_data.csv")
 ```
 
 ``` r
+# Get dimensions of dataset
 dim(housing)
 ```
 
     ## [1] 21613    21
 
 ``` r
+# Instead of head
 kable(housing[1:5,])
 ```
 
@@ -819,3 +821,8 @@ sqft\_lot15
 </tbody>
 
 </table>
+
+ 
+
+En este caso vamos a realizar una regresión lineal múltiple con la mejor
+sub-selección de variables.
