@@ -6,6 +6,6 @@ Este es un **ejercicio clásico de regresión** en el que se prueban diferentes 
 
 Empezamos por entrenar una **regresión lineal múltiple**. Esto se debe a que:  
 
-  * Sirve como **referencia de mínimo exigible al resto de los modelos**   
+  * Sirve como **referencia del mínimo exigible al resto de los modelos**   
   * Ofrece una **fácil interpretabilidad**   
   * Aunque no es siempre correcta, nunca está completamnete equivocada  
