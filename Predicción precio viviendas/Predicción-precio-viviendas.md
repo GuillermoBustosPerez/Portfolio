@@ -825,4 +825,52 @@ sqft\_lot15
  
 
 En este caso vamos a realizar una regresión lineal múltiple con la mejor
-sub-selección de variables.
+sub-selección de variables. Recordamos algunos de los principios básicos
+de la regresión lineal:
+
+``` r
+colnames(housing)
+```
+
+    ##  [1] "id"            "date"          "price"         "bedrooms"     
+    ##  [5] "bathrooms"     "sqft_living"   "sqft_lot"      "floors"       
+    ##  [9] "waterfront"    "view"          "condition"     "grade"        
+    ## [13] "sqft_above"    "sqft_basement" "yr_built"      "yr_renovated" 
+    ## [17] "zipcode"       "lat"           "long"          "sqft_living15"
+    ## [21] "sqft_lot15"
+
+``` r
+housing_reg <- housing %>% 
+  select(-c(id, date, zipcode, lat, long))
+
+colnames(housing_reg)
+```
+
+    ##  [1] "price"         "bedrooms"      "bathrooms"     "sqft_living"  
+    ##  [5] "sqft_lot"      "floors"        "waterfront"    "view"         
+    ##  [9] "condition"     "grade"         "sqft_above"    "sqft_basement"
+    ## [13] "yr_built"      "yr_renovated"  "sqft_living15" "sqft_lot15"
+
+ 
+
+Ahora tenemos que tener cuidad con las variables que muestran un alto
+grado de colinearidad: variables predictivas que tienen un altto grado
+de correlación. Esto se debe a que la colinearidad entre variables
+predictivas genera alteraciones en los signos de los coeficientes,
+dificultando su intepretabilidad.
+
+``` r
+# Correlation matrix
+cor <-cor(housing_reg[,-c(6,7,8,9, 10)])
+
+# Plot
+corrplot::corrplot(cor, method = "color",
+                   addCoef.col = TRUE,
+                   number.font = 2,
+                   number.cex = 0.75,
+                   type = "lower",
+                   sig.level = 0.001,
+                   insig = "blank")
+```
+
+![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
