@@ -828,6 +828,11 @@ En este caso vamos a realizar una regresión lineal múltiple con la mejor
 sub-selección de variables. Recordamos algunos de los principios básicos
 de la regresión lineal:
 
+  - Asume que la relación entre la variable dependiente (*Y*) y las
+    variables predictoras (\(X_1\), \(X_2\))
+
+<!-- end list -->
+
 ``` r
 colnames(housing)
 ```
