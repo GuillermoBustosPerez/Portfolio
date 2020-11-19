@@ -54,13 +54,6 @@ str(housing)
     ##  $ sqft_living15: int  1340 1690 2720 1360 1800 4760 2238 1650 1780 2390 ...
     ##  $ sqft_lot15   : int  5650 7639 8062 5000 7503 101930 6819 9711 8113 7570 ...
 
- 
-
-``` r
-# Instead of head
-kable(housing[1:5,])
-```
-
 <table>
 
 <thead>
@@ -855,858 +848,9 @@ sqft\_lot15
 
  
 
-Ahora podemos comprobar si hay alguna casa representada más de una vez.
-Esto no afecta en exceso al modelo, pero es interesante saber si durante
-este periodo de tiempo se vendió una casa más de una vez.
-
-``` r
-# This should return TRUE
-n_distinct(housing$id) == nrow(housing)
-```
-
-    ## [1] FALSE
-
- 
-
-``` r
-housing$repeated <- duplicated(housing$id)
-
-repeated <- housing %>% filter(repeated == TRUE)
-```
-
-``` r
-kable(repeated[1:5,])
-```
-
-<table>
-
-<thead>
-
-<tr>
-
-<th style="text-align:right;">
-
-id
-
-</th>
-
-<th style="text-align:left;">
-
-date
-
-</th>
-
-<th style="text-align:right;">
-
-price
-
-</th>
-
-<th style="text-align:right;">
-
-bedrooms
-
-</th>
-
-<th style="text-align:right;">
-
-bathrooms
-
-</th>
-
-<th style="text-align:right;">
-
-sqft\_living
-
-</th>
-
-<th style="text-align:right;">
-
-sqft\_lot
-
-</th>
-
-<th style="text-align:right;">
-
-floors
-
-</th>
-
-<th style="text-align:right;">
-
-waterfront
-
-</th>
-
-<th style="text-align:right;">
-
-view
-
-</th>
-
-<th style="text-align:right;">
-
-condition
-
-</th>
-
-<th style="text-align:right;">
-
-grade
-
-</th>
-
-<th style="text-align:right;">
-
-sqft\_above
-
-</th>
-
-<th style="text-align:right;">
-
-sqft\_basement
-
-</th>
-
-<th style="text-align:right;">
-
-yr\_built
-
-</th>
-
-<th style="text-align:right;">
-
-yr\_renovated
-
-</th>
-
-<th style="text-align:right;">
-
-zipcode
-
-</th>
-
-<th style="text-align:right;">
-
-lat
-
-</th>
-
-<th style="text-align:right;">
-
-long
-
-</th>
-
-<th style="text-align:right;">
-
-sqft\_living15
-
-</th>
-
-<th style="text-align:right;">
-
-sqft\_lot15
-
-</th>
-
-<th style="text-align:left;">
-
-repeated
-
-</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-
-<td style="text-align:right;">
-
-6021501535
-
-</td>
-
-<td style="text-align:left;">
-
-20141223T000000
-
-</td>
-
-<td style="text-align:right;">
-
-700000
-
-</td>
-
-<td style="text-align:right;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-1.50
-
-</td>
-
-<td style="text-align:right;">
-
-1580
-
-</td>
-
-<td style="text-align:right;">
-
-5000
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-8
-
-</td>
-
-<td style="text-align:right;">
-
-1290
-
-</td>
-
-<td style="text-align:right;">
-
-290
-
-</td>
-
-<td style="text-align:right;">
-
-1939
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-98117
-
-</td>
-
-<td style="text-align:right;">
-
-47.6870
-
-</td>
-
-<td style="text-align:right;">
-
-\-122.386
-
-</td>
-
-<td style="text-align:right;">
-
-1570
-
-</td>
-
-<td style="text-align:right;">
-
-4500
-
-</td>
-
-<td style="text-align:left;">
-
-TRUE
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-4139480200
-
-</td>
-
-<td style="text-align:left;">
-
-20141209T000000
-
-</td>
-
-<td style="text-align:right;">
-
-1400000
-
-</td>
-
-<td style="text-align:right;">
-
-4
-
-</td>
-
-<td style="text-align:right;">
-
-3.25
-
-</td>
-
-<td style="text-align:right;">
-
-4290
-
-</td>
-
-<td style="text-align:right;">
-
-12103
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-11
-
-</td>
-
-<td style="text-align:right;">
-
-2690
-
-</td>
-
-<td style="text-align:right;">
-
-1600
-
-</td>
-
-<td style="text-align:right;">
-
-1997
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-98006
-
-</td>
-
-<td style="text-align:right;">
-
-47.5503
-
-</td>
-
-<td style="text-align:right;">
-
-\-122.102
-
-</td>
-
-<td style="text-align:right;">
-
-3860
-
-</td>
-
-<td style="text-align:right;">
-
-11244
-
-</td>
-
-<td style="text-align:left;">
-
-TRUE
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-7520000520
-
-</td>
-
-<td style="text-align:left;">
-
-20150311T000000
-
-</td>
-
-<td style="text-align:right;">
-
-240500
-
-</td>
-
-<td style="text-align:right;">
-
-2
-
-</td>
-
-<td style="text-align:right;">
-
-1.00
-
-</td>
-
-<td style="text-align:right;">
-
-1240
-
-</td>
-
-<td style="text-align:right;">
-
-12092
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-6
-
-</td>
-
-<td style="text-align:right;">
-
-960
-
-</td>
-
-<td style="text-align:right;">
-
-280
-
-</td>
-
-<td style="text-align:right;">
-
-1922
-
-</td>
-
-<td style="text-align:right;">
-
-1984
-
-</td>
-
-<td style="text-align:right;">
-
-98146
-
-</td>
-
-<td style="text-align:right;">
-
-47.4957
-
-</td>
-
-<td style="text-align:right;">
-
-\-122.352
-
-</td>
-
-<td style="text-align:right;">
-
-1820
-
-</td>
-
-<td style="text-align:right;">
-
-7460
-
-</td>
-
-<td style="text-align:left;">
-
-TRUE
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-3969300030
-
-</td>
-
-<td style="text-align:left;">
-
-20141229T000000
-
-</td>
-
-<td style="text-align:right;">
-
-239900
-
-</td>
-
-<td style="text-align:right;">
-
-4
-
-</td>
-
-<td style="text-align:right;">
-
-1.00
-
-</td>
-
-<td style="text-align:right;">
-
-1000
-
-</td>
-
-<td style="text-align:right;">
-
-7134
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-3
-
-</td>
-
-<td style="text-align:right;">
-
-6
-
-</td>
-
-<td style="text-align:right;">
-
-1000
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-1943
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-98178
-
-</td>
-
-<td style="text-align:right;">
-
-47.4897
-
-</td>
-
-<td style="text-align:right;">
-
-\-122.240
-
-</td>
-
-<td style="text-align:right;">
-
-1020
-
-</td>
-
-<td style="text-align:right;">
-
-7138
-
-</td>
-
-<td style="text-align:left;">
-
-TRUE
-
-</td>
-
-</tr>
-
-<tr>
-
-<td style="text-align:right;">
-
-2231500030
-
-</td>
-
-<td style="text-align:left;">
-
-20150324T000000
-
-</td>
-
-<td style="text-align:right;">
-
-530000
-
-</td>
-
-<td style="text-align:right;">
-
-4
-
-</td>
-
-<td style="text-align:right;">
-
-2.25
-
-</td>
-
-<td style="text-align:right;">
-
-2180
-
-</td>
-
-<td style="text-align:right;">
-
-10754
-
-</td>
-
-<td style="text-align:right;">
-
-1
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-5
-
-</td>
-
-<td style="text-align:right;">
-
-7
-
-</td>
-
-<td style="text-align:right;">
-
-1100
-
-</td>
-
-<td style="text-align:right;">
-
-1080
-
-</td>
-
-<td style="text-align:right;">
-
-1954
-
-</td>
-
-<td style="text-align:right;">
-
-0
-
-</td>
-
-<td style="text-align:right;">
-
-98133
-
-</td>
-
-<td style="text-align:right;">
-
-47.7711
-
-</td>
-
-<td style="text-align:right;">
-
-\-122.341
-
-</td>
-
-<td style="text-align:right;">
-
-1810
-
-</td>
-
-<td style="text-align:right;">
-
-6929
-
-</td>
-
-<td style="text-align:left;">
-
-TRUE
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
- 
+Hay algunas variables a primera vista que carecen de utilidad para
+realizar la regresión lineal, como son el identificador, la fecha, el
+código postal, o la latitud y longitud.
 
 ## Regresión lineal múltiple
 
@@ -1754,7 +898,7 @@ colnames(housing)
     ##  [9] "waterfront"    "view"          "condition"     "grade"        
     ## [13] "sqft_above"    "sqft_basement" "yr_built"      "yr_renovated" 
     ## [17] "zipcode"       "lat"           "long"          "sqft_living15"
-    ## [21] "sqft_lot15"    "repeated"
+    ## [21] "sqft_lot15"
 
 ``` r
 # Remove non-usefull columns
@@ -1767,16 +911,18 @@ colnames(housing_reg)
     ##  [1] "price"         "bedrooms"      "bathrooms"     "sqft_living"  
     ##  [5] "sqft_lot"      "floors"        "waterfront"    "view"         
     ##  [9] "condition"     "grade"         "sqft_above"    "sqft_basement"
-    ## [13] "yr_built"      "yr_renovated"  "sqft_living15" "sqft_lot15"   
-    ## [17] "repeated"
+    ## [13] "yr_built"      "yr_renovated"  "sqft_living15" "sqft_lot15"
 
  
+
+### Correlaciones entre predictores
 
 Ahora tenemos que tener cuidad con las variables que muestran un alto
 grado de colinearidad: variables predictivas que tienen un altto grado
 de correlación. Esto se debe a que la colinearidad entre variables
 predictivas genera alteraciones en los signos de los coeficientes,
-dificultando su intepretabilidad.
+dificultando su intepretabilidad. Aunque el modelo general no se ve
+demasiado afectado, es importante tener esto en cuenta.
 
 ``` r
 # Correlation matrix
@@ -1792,12 +938,141 @@ corrplot::corrplot(cor, method = "color",
                    insig = "blank")
 ```
 
-![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
  
+
+## Modelo de regresión lineal múltiple
+
+Dado que tenemos menos de 20 variables. podemos hacer la mejor
+subselección de variables empleando el paquete **leaps** (Lumley T.
+based on Fortran code by Alan Miller, 2020).
+
+``` r
+colnames(housing_reg)
+```
+
+    ##  [1] "price"         "bedrooms"      "bathrooms"     "sqft_living"  
+    ##  [5] "sqft_lot"      "floors"        "waterfront"    "view"         
+    ##  [9] "condition"     "grade"         "sqft_above"    "sqft_basement"
+    ## [13] "yr_built"      "yr_renovated"  "sqft_living15" "sqft_lot15"
+
+``` r
+frmla <- "price ~ bedrooms + bathrooms + sqft_living + sqft_lot + floors + waterfront +view + condition + 
+grade + sqft_above + sqft_basement + yr_built + yr_renovated + sqft_living15 + sqft_lot15"
+#### Load leaps library
+library(leaps)
+
+#### Select subset of best variables changing limit of variables
+regfit_full <- regsubsets(price ~ bedrooms + bathrooms + sqft_living + sqft_lot + floors + waterfront +view + condition + 
+grade + sqft_above + sqft_basement + yr_built + yr_renovated + sqft_living15 + sqft_lot15,
+                          data = housing_reg,
+                          nvmax = 15)
+```
+
+    ## Warning in leaps.setup(x, y, wt = wt, nbest = nbest, nvmax = nvmax, force.in =
+    ## force.in, : 1 linear dependencies found
+
+    ## Reordering variables and trying again:
+
+``` r
+#### Plots Showing the best number of variables
+reg_summary <- summary(regfit_full)
+
+plot(reg_summary$cp, 
+     xlab = "Number of variables",
+     ylab = "Cp")
+which.min(reg_summary$cp)
+```
+
+    ## [1] 12
+
+``` r
+points(10, reg_summary$cp[10], 
+       pch = 20,
+       col = "red")
+```
+
+![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+``` r
+#### Heat map of selecteed variables
+plot(regfit_full, scale = "Cp")
+```
+
+![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+
+``` r
+#### Heat map of selecteed variables
+plot(regfit_full, scale = "adjr2")
+```
+
+![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+``` r
+# Function to get best subset of predictors  
+
+get_model_formula <- function(id, object, outcome){
+  # get models data
+  models <- summary(object)$which[id,-1]
+  # Get outcome variable
+  #form <- as.formula(object$call[[2]])
+  #outcome <- all.vars(form)[1]
+  # Get model predictors
+  predictors <- names(which(models == TRUE))
+  predictors <- paste(predictors, collapse = "+")
+  # Build model formula
+  as.formula(paste0(outcome, "~", predictors))
+}
+
+get_model_formula(10, regfit_full, "price")
+```
+
+    ## price ~ bedrooms + bathrooms + sqft_living + floors + waterfront + 
+    ##     view + condition + grade + yr_built + sqft_lot15
+    ## <environment: 0x000000000d0bf210>
+
+``` r
+frmla <- "price ~ bedrooms + bathrooms + sqft_living + floors + waterfront + view + condition + grade + yr_built + sqft_lot15"
+
+summary(lm(frmla, 
+           housing_reg))
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = frmla, data = housing_reg)
+    ## 
+    ## Residuals:
+    ##      Min       1Q   Median       3Q      Max 
+    ## -1331992  -109638    -9986    89773  4233752 
+    ## 
+    ## Coefficients:
+    ##               Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)  6.252e+06  1.297e+05  48.191  < 2e-16 ***
+    ## bedrooms    -3.950e+04  2.027e+03 -19.483  < 2e-16 ***
+    ## bathrooms    4.607e+04  3.410e+03  13.511  < 2e-16 ***
+    ## sqft_living  1.724e+02  3.284e+00  52.512  < 2e-16 ***
+    ## floors       2.325e+04  3.424e+03   6.790 1.15e-11 ***
+    ## waterfront   5.776e+05  1.861e+04  31.045  < 2e-16 ***
+    ## view         4.543e+04  2.225e+03  20.416  < 2e-16 ***
+    ## condition    1.825e+04  2.460e+03   7.417 1.24e-13 ***
+    ## grade        1.240e+05  2.137e+03  58.033  < 2e-16 ***
+    ## yr_built    -3.597e+03  6.682e+01 -53.829  < 2e-16 ***
+    ## sqft_lot15  -5.327e-01  5.549e-02  -9.601  < 2e-16 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 216400 on 21602 degrees of freedom
+    ## Multiple R-squared:  0.6529, Adjusted R-squared:  0.6527 
+    ## F-statistic:  4063 on 10 and 21602 DF,  p-value: < 2.2e-16
 
 ## Bibliografía
 
 James, G., Witten, D., Hastie, T., Tibshirani, R., 2013. An Introduction
 to Statistical Learning, Springer Texts in Statistics. Springer New
 York, New York, NY. <https://doi.org/10.1007/978-1-4614-7138-7>
+
+Lumley T. based on Fortran code by Alan Miller 2020. leaps:Regression
+Subset Selection. R package version 3.1.
+<https://CRAN.R-project.org/package=leaps>
