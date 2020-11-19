@@ -836,6 +836,8 @@ de la regresión lineal:
 
 <img src="https://render.githubusercontent.com/render/math?math=Y=\beta_0+\beta_1X+\epsilon">
 
+<img src="https://latex.codecogs.com/gif.latex?Y&space;=&space;\beta_{0}&space;&plus;&space;\beta_{1}X&space;&plus;&space;\epsilon" title="Y = \beta_{0} + \beta_{1}X + \epsilon" />
+
 ``` r
 colnames(housing)
 ```
