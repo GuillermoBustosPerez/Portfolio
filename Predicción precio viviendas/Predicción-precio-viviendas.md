@@ -826,7 +826,7 @@ sqft\_lot15
 
 En este caso vamos a realizar una regresión lineal múltiple con la mejor
 sub-selección de variables. Recordamos algunos de los principios básicos
-de la regresión lineal:
+de la regresión lineal (James et al., 2013):
 
   - Asume que la relación entre la variable dependiente (*Y*) y las
     variables predictoras
@@ -834,9 +834,25 @@ de la regresión lineal:
     es lineal.
       - Por consiguiente, si la regresión lineal simple asume que:
 
-<img src="https://render.githubusercontent.com/render/math?math=Y=\beta_0+\beta_1X+\epsilon">
-
 <img src="https://latex.codecogs.com/gif.latex?Y&space;=&space;\beta_{0}&space;&plus;&space;\beta_{1}X&space;&plus;&space;\epsilon" title="Y = \beta_{0} + \beta_{1}X + \epsilon" />
+
+  - Entonces la regresión lineal mútiple asume:
+
+<img src="https://latex.codecogs.com/gif.latex?Y&space;=&space;\beta_{0}&space;&plus;&space;\beta_{1}X_{1}&space;&plus;&space;\beta_{2}X_{2}&space;&plus;&space;\beta_{n}X_{n}&space;&plus;&space;\epsilon" title="Y = \beta_{0} + \beta_{1}X_{1} + \beta_{2}X_{2} + \beta_{n}X_{n} + \epsilon" />
+
+Siendo:
+
+  - *Y* la variable de respuesta a predecir
+
+  - *X* las variables predictoras
+
+  - <img src="https://latex.codecogs.com/gif.latex?\beta_{n}" title="\beta_{0}" />
+
+  - <img src="https://latex.codecogs.com/gif.latex?\beta_{n}" title="\beta_{n}" />
+
+  - <img src="https://latex.codecogs.com/gif.latex?\epsilon" title="\epsilon" />
+
+<!-- end list -->
 
 ``` r
 colnames(housing)
@@ -884,3 +900,11 @@ corrplot::corrplot(cor, method = "color",
 ```
 
 ![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
+ 
+
+## Bibliografía
+
+James, G., Witten, D., Hastie, T., Tibshirani, R., 2013. An Introduction
+to Statistical Learning, Springer Texts in Statistics. Springer New
+York, New York, NY. <https://doi.org/10.1007/978-1-4614-7138-7>
