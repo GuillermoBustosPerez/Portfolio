@@ -831,8 +831,10 @@ de la regresión lineal:
   - Asume que la relación entre la variable dependiente (*Y*) y las
     variables predictoras
     (<img src="https://render.githubusercontent.com/render/math?math=X_1, X_2, X_3...X_n">)
+    es lineal.
+      - Por consiguiente, si la regresión lineal simple asume que:
 
-<!-- end list -->
+<img src="https://render.githubusercontent.com/render/math?math=Y = \beta_0 + \beta_1X + \epsilon">
 
 ``` r
 colnames(housing)
