@@ -1680,7 +1680,7 @@ get_model_formula(8, regfit_full, "price")
 
     ## price ~ bedrooms + bathrooms + sqft_living + waterfront + view + 
     ##     grade + yr_built + sqft_lot15
-    ## <environment: 0x000000000d1a82b8>
+    ## <environment: 0x000000000d188040>
 
  
 
@@ -1795,16 +1795,110 @@ summary(MLR_Model)
 
 Para procesar modelos es particularmente útil la librería **broom**
 (Robinson et al., 2020) que nos permite generar dataframes que contengan
-los valores actuales, predecidos, residuals, etc.
+los valores actuales, predecidos, residuals, etc. sto facilita bastante
+el trato posterior del modelo
 
-Lo primero es determinar las métricas de valuación del modelo.
+Lo primero es determinar las métricas de evaluación del modelo. En este
+caso las métricas más adecuadas son la MAE, RMSE, MAPE junto con el
+adjuseted r-square.
 
 ``` r
 # Make predictions into dataframe
 MLR_DF <- broom::augment(MLR_Model)
 
-# Plot correlation and residuals plot
+# Model evaluation Metrics 
+Models <- data.frame(
+  "Model" = "Multiple Linear Regression",
+  "MAE" = Metrics::mae(MLR_DF$price, MLR_DF$.resid),
+  "RMSE" = Metrics::rmse(MLR_DF$price, MLR_DF$.resid),
+  "MAPE"= Metrics::mape(MLR_DF$price, MLR_DF$.resid),
+  "Ajust r2" = summary(MLR_Model)[9])
 ```
+
+<table>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+Model
+
+</th>
+
+<th style="text-align:right;">
+
+MAE
+
+</th>
+
+<th style="text-align:right;">
+
+RMSE
+
+</th>
+
+<th style="text-align:right;">
+
+MAPE
+
+</th>
+
+<th style="text-align:right;">
+
+adj.r.squared
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+Multiple Linear Regression
+
+</td>
+
+<td style="text-align:right;">
+
+540583.5
+
+</td>
+
+<td style="text-align:right;">
+
+616030.7
+
+</td>
+
+<td style="text-align:right;">
+
+1.082537
+
+</td>
+
+<td style="text-align:right;">
+
+0.6513112
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+ 
+
+Ahora que tenemos las métricas, podemos generar varias visualizaciones
+comunes para la evaluación de modelos.
 
 Ventajas del modelo de regresión múltiple:
 
