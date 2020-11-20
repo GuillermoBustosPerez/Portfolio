@@ -1,10 +1,19 @@
 Predicción precio viviendas
 ================
 
-## Introducción
+## Índice
+
+1)  Introducción  
+2)  Regresión lineal múltiple  
+    2.1) Correlaciones entre predictores  
+    2.2) Selección de variables (*Best sub-set selection*)  
+    2.3) Entrenamiento del modelo de regresión lineal múltiple  
+    2.4) Evaluación del modelo de regresión lineal múltiple
+
+## 1\) Introducción
 
 Mencionabamos en el inicio que se trata de un **ejercicio clásico de
-regeresión** (predecir un outcome numérico).
+regresión** (predecir un outcome numérico).
 
 Vamos a **empezar por una regresión lineal múltiple**. Es bueno empezar
 por aquí ya que:
@@ -861,7 +870,7 @@ Hay algunas variables que a primera vista que carecen de utilidad para
 realizar la regresión lineal, como son el identificador, la fecha, el
 código postal, o la latitud y longitud.
 
-## Regresión lineal múltiple
+## 2\) Regresión lineal múltiple
 
 En este caso vamos a realizar una regresión lineal múltiple con la mejor
 sub-selección de variables. Recordamos algunos de los principios básicos
@@ -1532,7 +1541,7 @@ sqft\_lot15
 
  
 
-### Correlaciones entre predictores
+### 2.1) Correlaciones entre predictores
 
 Ahora tenemos que tener cuidad con las variables que muestran un alto
 grado de colinearidad: variables predictivas que tienen un altto grado
@@ -1557,12 +1566,12 @@ corrplot::corrplot(cor, method = "color",
 
 ![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
-Combinene recordar que en esta tabla aparecen los números representan la
+Combinene recordar que en esta tabla los números representan la
 correlación entre variables, y no la correlación lineal.
 
  
 
-## Modelo de regresión lineal múltiple
+### 2.2) Selección de variables (*Best sub-set selection*)
 
 Dado que tenemos menos de 20 variables. podemos hacer la mejor
 subselección de variables empleando el paquete **leaps** (Lumley T.
@@ -1621,7 +1630,7 @@ data.frame(reg_summary[4],
 ![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
  
 
-Con llos resultados de subselección vemos:
+Con los resultados de subselección vemos:
 
   - El *cp* alcanza un mínimo con 12 predictores  
   - La adjusted r-squared alcanza un máximo con 13 predictores  
@@ -1643,8 +1652,13 @@ plot(regfit_full, scale = "adjr2")
 ![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
  
 
-En este caso vemos claramente que *sqft\_living*, *grade*,
-*yr\_renovated*, y *waterfront* son
+En este caso vemos claramente que *sqft\_living*, *grade* y *waterfront*
+son algunas de las variables más importantes. Por algún mottivo la
+variable *yr\_renovated* aparece como una de las más importantes, pero
+veremos en la siguiente parte del análisis que en relidad la variable
+más apropiada es *yr\_built*.  
+Con esto podemos emplear una **función que nos determine qué predictores
+son mejores para un modelo con ocho variables**.
 
 ``` r
 # Function to get best subset of predictors  
@@ -1666,18 +1680,46 @@ get_model_formula(8, regfit_full, "price")
 
     ## price ~ bedrooms + bathrooms + sqft_living + waterfront + view + 
     ##     grade + yr_built + sqft_lot15
-    ## <environment: 0x000000000c8cc298>
+    ## <environment: 0x000000000d178ba0>
+
+ 
+
+### 2.3) Entrenamiento del modelo de regresión lineal múltiple
+
+Ya tenemos la fórmula, así que basta con entrenar el modelo y obtener
+los datos de parámtros y coeficientes correspondientes. Recordamos que
+hemos detectado varias relaciones de colinearidad entre varias
+predictoras, con lo que la estimación de coeficientes de los predictores
+debe ser observada con prudencia.  
+Aunque **los modelos de rgresión lineal suelen tender poco al
+sobreajuste** de los datos (**overfiting**), sigue considerándose buena
+práctica dividir entre train/test sets para evaluar el modelo con datos
+que no ha visto. En este caso usamos la librería **caret** (Kuhn, 2008)
 
 ``` r
-frmla <- "price ~ bedrooms + bathrooms + sqft_living + waterfront + view + grade + yr_built + sqft_lot15"
+library(caret)
+#### Model k-fol cross validation ####
+set.seed(123)
 
-summary(lm(frmla, 
-           housing_reg))
+# Set control parameters
+train.control <- trainControl(method = "repeatedcv", 
+                              number = 10, 
+                              repeats = 20,
+                              savePredictions = TRUE)
+
+# train model
+MLR_Model <- train(price ~ bedrooms + bathrooms + sqft_living + waterfront + view + grade + yr_built + sqft_lot15, 
+               data = housing_reg, 
+               method = "lm",
+               trControl = train.control)
+
+# Model data
+summary(MLR_Model)
 ```
 
     ## 
     ## Call:
-    ## lm(formula = frmla, data = housing_reg)
+    ## lm(formula = .outcome ~ ., data = dat)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
@@ -1701,6 +1743,58 @@ summary(lm(frmla,
     ## Multiple R-squared:  0.6514, Adjusted R-squared:  0.6513 
     ## F-statistic:  5047 on 8 and 21604 DF,  p-value: < 2.2e-16
 
+``` r
+MLR_Model$results
+```
+
+    ##   intercept   RMSE  Rsquared      MAE   RMSESD RsquaredSD    MAESD
+    ## 1      TRUE 216733 0.6514288 140918.7 13390.47 0.01641308 2879.253
+
+ 
+
+Si entrenamos nuevamente el modelo dejando fuera la K-fold cross
+validation vemos que obtenemos el mismo resultado (como ya hemos
+señalado antes, esto se debe a que los modelos de regresión lineal no
+tienden a sobreajustar los datos).
+
+``` r
+MLR_Model <- lm(price ~ bedrooms + bathrooms + sqft_living + waterfront + view + grade + yr_built + sqft_lot15, 
+               data = housing_reg)
+summary(MLR_Model)
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = price ~ bedrooms + bathrooms + sqft_living + waterfront + 
+    ##     view + grade + yr_built + sqft_lot15, data = housing_reg)
+    ## 
+    ## Residuals:
+    ##      Min       1Q   Median       3Q      Max 
+    ## -1345099  -111106    -9472    90619  4231898 
+    ## 
+    ## Coefficients:
+    ##               Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)  6.406e+06  1.181e+05  54.258   <2e-16 ***
+    ## bedrooms    -3.933e+04  2.026e+03 -19.413   <2e-16 ***
+    ## bathrooms    5.223e+04  3.317e+03  15.746   <2e-16 ***
+    ## sqft_living  1.711e+02  3.283e+00  52.126   <2e-16 ***
+    ## waterfront   5.806e+05  1.864e+04  31.151   <2e-16 ***
+    ## view         4.492e+04  2.226e+03  20.176   <2e-16 ***
+    ## grade        1.261e+05  2.108e+03  59.839   <2e-16 ***
+    ## yr_built    -3.640e+03  6.226e+01 -58.454   <2e-16 ***
+    ## sqft_lot15  -5.533e-01  5.543e-02  -9.981   <2e-16 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 216800 on 21604 degrees of freedom
+    ## Multiple R-squared:  0.6514, Adjusted R-squared:  0.6513 
+    ## F-statistic:  5047 on 8 and 21604 DF,  p-value: < 2.2e-16
+
+### 2.4) Evaluación del modelo de regresión lineal múltiple
+
+Para procesar modelos es particularmente útil la librería **broom**
+(Robinson et al., 2020)
+
 ## Bibliografía
 
 Hastie, T., Tibshirani, R., Friedman, J., 2009. The Elements of
@@ -1710,6 +1804,14 @@ Edition. ed, Springer Series in Statistics. Springer.
 James, G., Witten, D., Hastie, T., Tibshirani, R., 2013. An Introduction
 to Statistical Learning, Springer Texts in Statistics. Springer New
 York, New York, NY. <https://doi.org/10.1007/978-1-4614-7138-7>
+
+Kuhn, M., 2008. Building Predictive Models in R using the caret Package.
+Journal of Statistical Software 28.
+<https://doi.org/10.18637/jss.v028.i05>
+
+Robinson, D., Hayes A., Couch, S., (2020). broom: Convert Statistical
+Objects into Tidy Tibbles. R package version 0.7.0.
+<https://CRAN.R-project.org/package=broom>
 
 Lumley T. based on Fortran code by Alan Miller 2020. leaps:Regression
 Subset Selection. R package version 3.1.
