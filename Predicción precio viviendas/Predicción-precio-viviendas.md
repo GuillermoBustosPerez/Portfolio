@@ -1666,7 +1666,7 @@ get_model_formula(8, regfit_full, "price")
 
     ## price ~ bedrooms + bathrooms + sqft_living + waterfront + view + 
     ##     grade + yr_built + sqft_lot15
-    ## <environment: 0x000000000d0e1c58>
+    ## <environment: 0x000000000d0e7ad0>
 
 ``` r
 frmla <- "price ~ bedrooms + bathrooms + sqft_living + waterfront + view + grade + yr_built + sqft_lot15"
