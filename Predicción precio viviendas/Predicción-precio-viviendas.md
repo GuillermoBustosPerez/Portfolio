@@ -6,6 +6,14 @@ Predicción precio viviendas
 Mencionabamos en el inicio que se trata de un **ejercicio clásico de
 regeresión** (predecir un outcome numérico).
 
+Vamos a **empezar por una regresión lineal múltiple**. Es bueno empezar
+por aquí ya que:
+
+  - Sirve como **referencia de mínimo exigible al resto de los
+    modelos**  
+  - Ofrece una **fácil interpretabilidad**  
+  - Aunque no es siempre correcta, nunca está completamnete equivocada
+
 En este caso vamos a emplear la base de datos de dominio público de
 viviendas de King County (Washington State, USA). Se trata de un datset
 de 21613 viviendas con 21 variables asociadas al precio. Las ventas se
@@ -849,7 +857,7 @@ sqft\_lot15
 
  
 
-Hay algunas variables a primera vista que carecen de utilidad para
+Hay algunas variables que a primera vista que carecen de utilidad para
 realizar la regresión lineal, como son el identificador, la fecha, el
 código postal, o la latitud y longitud.
 
@@ -887,7 +895,10 @@ Siendo:
   - <img src="https://latex.codecogs.com/gif.latex?\epsilon" title="\epsilon" />:
     corresponde al término de error
 
-En la práctica puede decirse que
+En la práctica puede decirse que la regresión linel nunca es
+completamente correcta, pero tampoco está completamente acertada.
+Prescindimos de las variables no necesarias y ahora tiene mucho mejor
+aspecto.
 
 ``` r
 # Check column names 
@@ -905,14 +916,619 @@ colnames(housing)
 # Remove non-usefull columns
 housing_reg <- housing %>% 
   select(-c(id, date, zipcode, lat, long))
-
-colnames(housing_reg)
 ```
 
-    ##  [1] "price"         "bedrooms"      "bathrooms"     "sqft_living"  
-    ##  [5] "sqft_lot"      "floors"        "waterfront"    "view"         
-    ##  [9] "condition"     "grade"         "sqft_above"    "sqft_basement"
-    ## [13] "yr_built"      "yr_renovated"  "sqft_living15" "sqft_lot15"
+<table>
+
+<thead>
+
+<tr>
+
+<th style="text-align:right;">
+
+price
+
+</th>
+
+<th style="text-align:right;">
+
+bedrooms
+
+</th>
+
+<th style="text-align:right;">
+
+bathrooms
+
+</th>
+
+<th style="text-align:right;">
+
+sqft\_living
+
+</th>
+
+<th style="text-align:right;">
+
+sqft\_lot
+
+</th>
+
+<th style="text-align:right;">
+
+floors
+
+</th>
+
+<th style="text-align:right;">
+
+waterfront
+
+</th>
+
+<th style="text-align:right;">
+
+view
+
+</th>
+
+<th style="text-align:right;">
+
+condition
+
+</th>
+
+<th style="text-align:right;">
+
+grade
+
+</th>
+
+<th style="text-align:right;">
+
+sqft\_above
+
+</th>
+
+<th style="text-align:right;">
+
+sqft\_basement
+
+</th>
+
+<th style="text-align:right;">
+
+yr\_built
+
+</th>
+
+<th style="text-align:right;">
+
+yr\_renovated
+
+</th>
+
+<th style="text-align:right;">
+
+sqft\_living15
+
+</th>
+
+<th style="text-align:right;">
+
+sqft\_lot15
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:right;">
+
+221900
+
+</td>
+
+<td style="text-align:right;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+1.00
+
+</td>
+
+<td style="text-align:right;">
+
+1180
+
+</td>
+
+<td style="text-align:right;">
+
+5650
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+7
+
+</td>
+
+<td style="text-align:right;">
+
+1180
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+1955
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+1340
+
+</td>
+
+<td style="text-align:right;">
+
+5650
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+538000
+
+</td>
+
+<td style="text-align:right;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+2.25
+
+</td>
+
+<td style="text-align:right;">
+
+2570
+
+</td>
+
+<td style="text-align:right;">
+
+7242
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+7
+
+</td>
+
+<td style="text-align:right;">
+
+2170
+
+</td>
+
+<td style="text-align:right;">
+
+400
+
+</td>
+
+<td style="text-align:right;">
+
+1951
+
+</td>
+
+<td style="text-align:right;">
+
+1991
+
+</td>
+
+<td style="text-align:right;">
+
+1690
+
+</td>
+
+<td style="text-align:right;">
+
+7639
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+180000
+
+</td>
+
+<td style="text-align:right;">
+
+2
+
+</td>
+
+<td style="text-align:right;">
+
+1.00
+
+</td>
+
+<td style="text-align:right;">
+
+770
+
+</td>
+
+<td style="text-align:right;">
+
+10000
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+6
+
+</td>
+
+<td style="text-align:right;">
+
+770
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+1933
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+2720
+
+</td>
+
+<td style="text-align:right;">
+
+8062
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+604000
+
+</td>
+
+<td style="text-align:right;">
+
+4
+
+</td>
+
+<td style="text-align:right;">
+
+3.00
+
+</td>
+
+<td style="text-align:right;">
+
+1960
+
+</td>
+
+<td style="text-align:right;">
+
+5000
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+5
+
+</td>
+
+<td style="text-align:right;">
+
+7
+
+</td>
+
+<td style="text-align:right;">
+
+1050
+
+</td>
+
+<td style="text-align:right;">
+
+910
+
+</td>
+
+<td style="text-align:right;">
+
+1965
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+1360
+
+</td>
+
+<td style="text-align:right;">
+
+5000
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+510000
+
+</td>
+
+<td style="text-align:right;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+2.00
+
+</td>
+
+<td style="text-align:right;">
+
+1680
+
+</td>
+
+<td style="text-align:right;">
+
+8080
+
+</td>
+
+<td style="text-align:right;">
+
+1
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+3
+
+</td>
+
+<td style="text-align:right;">
+
+8
+
+</td>
+
+<td style="text-align:right;">
+
+1680
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+1987
+
+</td>
+
+<td style="text-align:right;">
+
+0
+
+</td>
+
+<td style="text-align:right;">
+
+1800
+
+</td>
+
+<td style="text-align:right;">
+
+7503
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
 
  
 
@@ -939,7 +1555,10 @@ corrplot::corrplot(cor, method = "color",
                    insig = "blank")
 ```
 
-![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+Combinene recordar que en esta tabla aparecen los números representan la
+correlación entre variables, y no la correlación lineal.
 
  
 
@@ -949,18 +1568,10 @@ Dado que tenemos menos de 20 variables. podemos hacer la mejor
 subselección de variables empleando el paquete **leaps** (Lumley T.
 based on Fortran code by Alan Miller, 2020).
 
-``` r
-colnames(housing_reg)
-```
-
-    ##  [1] "price"         "bedrooms"      "bathrooms"     "sqft_living"  
-    ##  [5] "sqft_lot"      "floors"        "waterfront"    "view"         
-    ##  [9] "condition"     "grade"         "sqft_above"    "sqft_basement"
-    ## [13] "yr_built"      "yr_renovated"  "sqft_living15" "sqft_lot15"
+Lo primero es **determinar el número y qué variables vamos a incluir**
+en el modelo de regresión lineal múltiple.
 
 ``` r
-frmla <- "price ~ bedrooms + bathrooms + sqft_living + sqft_lot + floors + waterfront +view + condition + 
-grade + sqft_above + sqft_basement + yr_built + yr_renovated + sqft_living15 + sqft_lot15"
 #### Load leaps library
 library(leaps)
 
@@ -979,40 +1590,64 @@ grade + sqft_above + sqft_basement + yr_built + yr_renovated + sqft_living15 + s
 ``` r
 #### Plots Showing the best number of variables
 reg_summary <- summary(regfit_full)
-
-plot(reg_summary$cp, 
-     xlab = "Number of variables",
-     ylab = "Cp")
 which.min(reg_summary$cp)
 ```
 
     ## [1] 12
 
 ``` r
-points(10, reg_summary$cp[10], 
-       pch = 20,
-       col = "red")
+which.max(reg_summary$adjr2)
 ```
 
-![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+    ## [1] 13
 
 ``` r
-#### Heat map of selecteed variables
-plot(regfit_full, scale = "Cp")
-```
-
-![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
-
-``` r
-#### Heat map of selecteed variables
-plot(regfit_full, scale = "adjr2")
+# Plot cp and adjusted rsquared according to n predictors
+data.frame(reg_summary[4], 
+           reg_summary[5],
+           Predictors  = seq(1, 14, 1)) %>% 
+  pivot_longer(c(adjr2, cp),
+               names_to = "Parameters",
+               values_to = "Estimation") %>% 
+  ggplot(aes(Predictors, Estimation, color = Parameters)) +
+  geom_line() +
+  geom_point() +
+  ggsci::scale_color_aaas() +
+  theme_light() +
+  facet_wrap(~Parameters, scales = "free") +
+  theme(legend.position = "none")
 ```
 
 ![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+ 
+
+Con llos resultados de subselección vemos:
+
+  - El *cp* alcanza un mínimo con 12 predictores  
+  - La adjusted r-squared alcanza un máximo con 13 predictores  
+  - Los gráficos de evolución del *cp* y la *adjusted r-squared* muestra
+    que la mejor combinación de variables **se estabiliza** a partir de
+    los **ocho predictores**. Es mejor elegir el modelo más simple que
+    no suponga un empeoramiento sustancial con respecto al modelo óptimo
+    (Hastie et al., 2009). Por consiguiente elegimos ocho predictores.
+
+Ahora vamos a visualizar **qué variables** son más estables y mejores
+para el modelo.
+
+``` r
+par(mfrow  = c(1,2))
+plot(regfit_full, scale = "Cp")
+plot(regfit_full, scale = "adjr2")
+```
+
+![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+ 
+
+En este caso vemos claramente que *sqft\_living*, *grade*,
+*yr\_renovated*, y *waterfront* son
 
 ``` r
 # Function to get best subset of predictors  
-
 get_model_formula <- function(id, object, outcome){
   # get models data
   models <- summary(object)$which[id,-1]
@@ -1026,15 +1661,15 @@ get_model_formula <- function(id, object, outcome){
   as.formula(paste0(outcome, "~", predictors))
 }
 
-get_model_formula(10, regfit_full, "price")
+get_model_formula(8, regfit_full, "price")
 ```
 
-    ## price ~ bedrooms + bathrooms + sqft_living + floors + waterfront + 
-    ##     view + condition + grade + yr_built + sqft_lot15
-    ## <environment: 0x000000000d0c76a8>
+    ## price ~ bedrooms + bathrooms + sqft_living + waterfront + view + 
+    ##     grade + yr_built + sqft_lot15
+    ## <environment: 0x000000000d0e1c58>
 
 ``` r
-frmla <- "price ~ bedrooms + bathrooms + sqft_living + floors + waterfront + view + condition + grade + yr_built + sqft_lot15"
+frmla <- "price ~ bedrooms + bathrooms + sqft_living + waterfront + view + grade + yr_built + sqft_lot15"
 
 summary(lm(frmla, 
            housing_reg))
@@ -1046,29 +1681,31 @@ summary(lm(frmla,
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -1331992  -109638    -9986    89773  4233752 
+    ## -1345099  -111106    -9472    90619  4231898 
     ## 
     ## Coefficients:
     ##               Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  6.252e+06  1.297e+05  48.191  < 2e-16 ***
-    ## bedrooms    -3.950e+04  2.027e+03 -19.483  < 2e-16 ***
-    ## bathrooms    4.607e+04  3.410e+03  13.511  < 2e-16 ***
-    ## sqft_living  1.724e+02  3.284e+00  52.512  < 2e-16 ***
-    ## floors       2.325e+04  3.424e+03   6.790 1.15e-11 ***
-    ## waterfront   5.776e+05  1.861e+04  31.045  < 2e-16 ***
-    ## view         4.543e+04  2.225e+03  20.416  < 2e-16 ***
-    ## condition    1.825e+04  2.460e+03   7.417 1.24e-13 ***
-    ## grade        1.240e+05  2.137e+03  58.033  < 2e-16 ***
-    ## yr_built    -3.597e+03  6.682e+01 -53.829  < 2e-16 ***
-    ## sqft_lot15  -5.327e-01  5.549e-02  -9.601  < 2e-16 ***
+    ## (Intercept)  6.406e+06  1.181e+05  54.258   <2e-16 ***
+    ## bedrooms    -3.933e+04  2.026e+03 -19.413   <2e-16 ***
+    ## bathrooms    5.223e+04  3.317e+03  15.746   <2e-16 ***
+    ## sqft_living  1.711e+02  3.283e+00  52.126   <2e-16 ***
+    ## waterfront   5.806e+05  1.864e+04  31.151   <2e-16 ***
+    ## view         4.492e+04  2.226e+03  20.176   <2e-16 ***
+    ## grade        1.261e+05  2.108e+03  59.839   <2e-16 ***
+    ## yr_built    -3.640e+03  6.226e+01 -58.454   <2e-16 ***
+    ## sqft_lot15  -5.533e-01  5.543e-02  -9.981   <2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 216400 on 21602 degrees of freedom
-    ## Multiple R-squared:  0.6529, Adjusted R-squared:  0.6527 
-    ## F-statistic:  4063 on 10 and 21602 DF,  p-value: < 2.2e-16
+    ## Residual standard error: 216800 on 21604 degrees of freedom
+    ## Multiple R-squared:  0.6514, Adjusted R-squared:  0.6513 
+    ## F-statistic:  5047 on 8 and 21604 DF,  p-value: < 2.2e-16
 
 ## Bibliografía
+
+Hastie, T., Tibshirani, R., Friedman, J., 2009. The Elements of
+Statistical Learning. Data Mining, Inference, and Prediction, Second
+Edition. ed, Springer Series in Statistics. Springer.
 
 James, G., Witten, D., Hastie, T., Tibshirani, R., 2013. An Introduction
 to Statistical Learning, Springer Texts in Statistics. Springer New
