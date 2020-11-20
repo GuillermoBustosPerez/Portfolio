@@ -8,7 +8,9 @@ Predicción precio viviendas
     2.1) Correlaciones entre predictores  
     2.2) Selección de variables (*Best sub-set selection*)  
     2.3) Entrenamiento del modelo de regresión lineal múltiple  
-    2.4) Evaluación del modelo de regresión lineal múltiple
+    2.4) Evaluación del modelo de regresión lineal múltiple  
+    2.5) Conclusión: Ventajas y desventajas del modelo de regresión
+    lineal múltiple
 
 ## 1\) Introducción
 
@@ -1627,7 +1629,7 @@ data.frame(reg_summary[4],
   theme(legend.position = "none")
 ```
 
-![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+<img src="Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-10-1.png" style="display: block; margin: auto;" />
  
 
 Con los resultados de subselección vemos:
@@ -1680,7 +1682,7 @@ get_model_formula(8, regfit_full, "price")
 
     ## price ~ bedrooms + bathrooms + sqft_living + waterfront + view + 
     ##     grade + yr_built + sqft_lot15
-    ## <environment: 0x000000000d188040>
+    ## <environment: 0x000000000d1579d8>
 
  
 
@@ -1796,11 +1798,14 @@ summary(MLR_Model)
 Para procesar modelos es particularmente útil la librería **broom**
 (Robinson et al., 2020) que nos permite generar dataframes que contengan
 los valores actuales, predecidos, residuals, etc. sto facilita bastante
-el trato posterior del modelo
+el trato posterior del modelo. En combinación con la biblioteca
+**Metrics** (Hamner and Frasco, 2018) permiteo btener diferentes
+métricas de evaluación de modelos.
 
-Lo primero es determinar las métricas de evaluación del modelo. En este
-caso las métricas más adecuadas son la MAE, RMSE, MAPE junto con el
-adjuseted r-square.
+En este caso las métricas más adecuadas para la evaluación del modelo
+son la MAE, RMSE, MAPE junto con el adjuseted r-square. Vamos a
+guardarlas en un dataframe que luego iremos aumentando con otros
+modelos.
 
 ``` r
 # Make predictions into dataframe
@@ -1898,16 +1903,106 @@ Multiple Linear Regression
  
 
 Ahora que tenemos las métricas, podemos generar varias visualizaciones
-comunes para la evaluación de modelos.
+comunes para la evaluación de modelos. En este aso vamos a centrarnos
+**en tres visualizaciones**:  
+1\) Diagrama de dispersión (*scatter plot*) de distribución de valores
+predecidos y valores reales junto con la recta de regresión.  
+2\) Diagrama de dispersión del valor a predecir y los residuals  
+3\) Gráfico de densidad de distribución de los residuals
 
-Ventajas del modelo de regresión múltiple:
+Empecemos por los gráficos de dispersión de la correlación entre la
+predicción y el precio y de los residuals con el precio. Vamos a
+mantener constante la relación entre los ejes para
+
+``` r
+# Scatter plot of correlation and residuals
+ggpubr::ggarrange(
+  (
+    MLR_DF %>% ggplot(aes(.fitted, price)) +
+      geom_point(alpha = .2) +
+      geom_line(aes(y = .fitted), size = 1, col = "blue") +
+      coord_fixed() + 
+      theme_light() +
+      geom_vline(xintercept = 0) + geom_hline(yintercept = 0) + 
+      xlab("Predicted") +
+      ylab("Price")),
+  
+  (
+    MLR_DF %>% ggplot(aes(price, .resid)) +
+     geom_point(alpha = .2) +
+      ylab("Residuals") +
+      xlab("Price") +
+      theme_light()
+    ),
+  ncol = 2, align = "h")
+```
+
+<img src="Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-17-1.png" style="display: block; margin: auto;" />
+ 
+
+Un vistazo rápido permite dejar claro que aunque tenemos una correlación
+aceptable, **el modelo deja mucho que desear**. Vemos que en la parte de
+mayor valor de precio el modelo sistemáticamente infraestima las
+predicciones. Esto se transmite claramente en el gráfico de dispersión
+de residuals con respecto al precio, donde podemos ver que **los
+residuals se incrementan positivamente a medida que incrementa el
+precio**. Un modelo de correlaicón lineal entre los residuals y el
+precio nos confirma esto proporcionando una correlación lineal de
+0.3485598.
+
+``` r
+# Check if residuals are correlated with price
+summary(lm(price ~ .resid, MLR_DF))
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = price ~ .resid, data = MLR_DF)
+    ## 
+    ## Residuals:
+    ##      Min       1Q   Median       3Q      Max 
+    ## -1269065  -200044   -60116   131471  2928014 
+    ## 
+    ## Coefficients:
+    ##              Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept) 5.401e+05  2.016e+03   268.0   <2e-16 ***
+    ## .resid      1.000e+00  9.300e-03   107.5   <2e-16 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 296300 on 21611 degrees of freedom
+    ## Multiple R-squared:  0.3486, Adjusted R-squared:  0.3485 
+    ## F-statistic: 1.156e+04 on 1 and 21611 DF,  p-value: < 2.2e-16
+
+ 
+
+Por último el gráfico de densidad de distribución de los residuals nos
+permite ver que, aunque la gran mayoría de los residuals están centrados
+alrededor del valor 0 con una distribución aparentemente normal, lastran
+una importante cola hacia el margen de mayor valor. Esto está en línea
+con lo que hemos visto previamente.
+
+``` r
+# Residuals density plot
+MLR_DF %>% ggplot(aes(.resid)) +
+  geom_density(color = "blue", fill = "lightblue")  +
+  theme_light() +
+  geom_vline(xintercept = 0) + geom_hline(yintercept = 0) + 
+  xlab("Residuals") + ylab("Density")
+```
+
+<img src="Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-19-1.png" style="display: block; margin: auto;" />
+
+### 2.5) Conclusión: Ventajas y desventajas del modelo de regresión lineal múltiple
+
+**Ventajas** del modelo de regresión múltiple:
 
   - Proporciona una fácil intepretabilidad de qué variables influyen más
     en el precio de la vivenda  
   - Los siguientes modelos deben tener una adjusted r-squared de al
     menos 0.6513112
 
-Desventajas del modelo de regresión lineal múltiple:
+**Desventajas** del modelo de regresión lineal múltiple:
 
   - La correlación entre el los residuals y el precio indica que cuanto
     más elevado sea el precio más será infravalorardo por el modelo
@@ -1918,6 +2013,9 @@ Desventajas del modelo de regresión lineal múltiple:
     a la escala logarítmica.
 
 ## Bibliografía
+
+Hamner, B., and Frasco, M., 2018. Metrics: Evaluation Metrics for
+Machine Learning. R package version 0.1.4.
 
 Hastie, T., Tibshirani, R., Friedman, J., 2009. The Elements of
 Statistical Learning. Data Mining, Inference, and Prediction, Second
@@ -1931,7 +2029,7 @@ Kuhn, M., 2008. Building Predictive Models in R using the caret Package.
 Journal of Statistical Software 28.
 <https://doi.org/10.18637/jss.v028.i05>
 
-Robinson, D., Hayes A., Couch, S., (2020). broom: Convert Statistical
+Robinson, D., Hayes A., Couch, S., 2020. broom: Convert Statistical
 Objects into Tidy Tibbles. R package version 0.7.0.
 <https://CRAN.R-project.org/package=broom>
 
