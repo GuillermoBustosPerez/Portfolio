@@ -1680,7 +1680,7 @@ get_model_formula(8, regfit_full, "price")
 
     ## price ~ bedrooms + bathrooms + sqft_living + waterfront + view + 
     ##     grade + yr_built + sqft_lot15
-    ## <environment: 0x000000000d178ba0>
+    ## <environment: 0x000000000d1a82b8>
 
  
 
@@ -1691,7 +1691,7 @@ los datos de parámtros y coeficientes correspondientes. Recordamos que
 hemos detectado varias relaciones de colinearidad entre varias
 predictoras, con lo que la estimación de coeficientes de los predictores
 debe ser observada con prudencia.  
-Aunque **los modelos de rgresión lineal suelen tender poco al
+Aunque **los modelos de regresión lineal suelen tender poco al
 sobreajuste** de los datos (**overfiting**), sigue considerándose buena
 práctica dividir entre train/test sets para evaluar el modelo con datos
 que no ha visto. En este caso usamos la librería **caret** (Kuhn, 2008)
@@ -1755,7 +1755,8 @@ MLR_Model$results
 Si entrenamos nuevamente el modelo dejando fuera la K-fold cross
 validation vemos que obtenemos el mismo resultado (como ya hemos
 señalado antes, esto se debe a que los modelos de regresión lineal no
-tienden a sobreajustar los datos).
+tienden a sobreajustar los datos, especialmente en datasets tan
+grandes).
 
 ``` r
 MLR_Model <- lm(price ~ bedrooms + bathrooms + sqft_living + waterfront + view + grade + yr_built + sqft_lot15, 
@@ -1793,7 +1794,34 @@ summary(MLR_Model)
 ### 2.4) Evaluación del modelo de regresión lineal múltiple
 
 Para procesar modelos es particularmente útil la librería **broom**
-(Robinson et al., 2020)
+(Robinson et al., 2020) que nos permite generar dataframes que contengan
+los valores actuales, predecidos, residuals, etc.
+
+Lo primero es determinar las métricas de valuación del modelo.
+
+``` r
+# Make predictions into dataframe
+MLR_DF <- broom::augment(MLR_Model)
+
+# Plot correlation and residuals plot
+```
+
+Ventajas del modelo de regresión múltiple:
+
+  - Proporciona una fácil intepretabilidad de qué variables influyen más
+    en el precio de la vivenda  
+  - Los siguientes modelos deben tener una adjusted r-squared de al
+    menos 0.6513112
+
+Desventajas del modelo de regresión lineal múltiple:
+
+  - La correlación entre el los residuals y el precio indica que cuanto
+    más elevado sea el precio más será infravalorardo por el modelo
+    (atribuirá a esa casa un valor menor)  
+  - En algunos casos el modelo predice valores negativos para las
+    viviendas. Esto es común a los modelos de regresión lineal para
+    predecir precios, pero es fácilmente corregible adaptando el precio
+    a la escala logarítmica.
 
 ## Bibliografía
 
