@@ -14,8 +14,14 @@ Predicción precio viviendas
     lineal múltiple  
     2.6) Regresión lineal múltiple sobre valores logarítmicos
 
-3)  Gradient Boosting Machine (GBM)  
-    3.1) GBM con hiperparámtros por defecto
+3)  Random Forest Regression  
+    3.1) Random Forest con hiperparámetros por defecto  
+    3.2) Random Forest con Grid search  
+    3.3) Evaluación del modelo de Random Forest
+
+4)  Concluyendo  
+    4.1) Comparando los modelos  
+    4.2) Del modelo a datos útiles
 
 ## 1\) Introducción
 
@@ -1808,7 +1814,7 @@ get_model_formula(10, regfit_full, "price")
 
     ## price ~ bedrooms + bathrooms + sqft_living + waterfront + view + 
     ##     grade + yr_built + zipcode + lat + long
-    ## <environment: 0x0000000015500f10>
+    ## <environment: 0x0000000015531238>
 
  
 
