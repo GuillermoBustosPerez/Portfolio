@@ -1808,7 +1808,7 @@ get_model_formula(10, regfit_full, "price")
 
     ## price ~ bedrooms + bathrooms + sqft_living + waterfront + view + 
     ##     grade + yr_built + zipcode + lat + long
-    ## <environment: 0x0000000014d0aca8>
+    ## <environment: 0x0000000015500f10>
 
  
 
@@ -2164,7 +2164,7 @@ parte de la interpretabilidad del modelo.
 
 ``` r
 # Log of price
-price <- housing_reg %>% mutate(price = log(price))
+price <- housing_reg %>% transmute(price = log(price))
 
 # Scale variables
 housing_reg <- scale(housing_reg[-1])
@@ -2195,18 +2195,18 @@ summary(MLR_Log)
     ## -1.97836 -0.16437  0.00307  0.16388  1.25485 
     ## 
     ## Coefficients:
-    ##               Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)  1.495e+01  3.552e+00   4.208 2.59e-05 ***
-    ## bedrooms    -1.375e-02  2.422e-03  -5.678 1.38e-08 ***
-    ## bathrooms    8.701e-02  3.978e-03  21.871  < 2e-16 ***
-    ## sqft_living  1.758e-04  3.933e-06  44.704  < 2e-16 ***
-    ## view         6.946e-02  2.685e-03  25.871  < 2e-16 ***
-    ## grade        1.828e-01  2.571e-03  71.121  < 2e-16 ***
-    ## yr_built    -3.850e-03  8.153e-05 -47.224  < 2e-16 ***
-    ## zipcode     -7.575e-04  4.178e-05 -18.131  < 2e-16 ***
-    ## long        -9.325e-02  1.602e-02  -5.820 5.96e-09 ***
-    ## lat          1.402e+00  1.365e-02 102.680  < 2e-16 ***
-    ## waterfront   3.715e-01  2.230e-02  16.661  < 2e-16 ***
+    ##              Estimate Std. Error  t value Pr(>|t|)    
+    ## (Intercept) 13.047817   0.001764 7397.727  < 2e-16 ***
+    ## bedrooms    -0.012789   0.002252   -5.678 1.38e-08 ***
+    ## bathrooms    0.067010   0.003064   21.871  < 2e-16 ***
+    ## sqft_living  0.161470   0.003612   44.704  < 2e-16 ***
+    ## view         0.053229   0.002057   25.871  < 2e-16 ***
+    ## grade        0.214909   0.003022   71.121  < 2e-16 ***
+    ## yr_built    -0.113096   0.002395  -47.224  < 2e-16 ***
+    ## zipcode     -0.040532   0.002236  -18.131  < 2e-16 ***
+    ## long        -0.013132   0.002256   -5.820 5.96e-09 ***
+    ## lat          0.194236   0.001892  102.680  < 2e-16 ***
+    ## waterfront   0.032144   0.001929   16.661  < 2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
@@ -2427,53 +2427,98 @@ Mult. Linear Reg. Log scale
 
 </table>
 
-## 3\) Modelo de Gradient Boosting Machine
+## 3\) Random Forest regression
 
-Los Gradient Boosting Machine son derivados del Descenso gradiante y el
-Boosting (Friedman, 2020). Conviene recordar los hiperparámtros de GBM.
+Los *random forests* (Breiman, 2001) combinan la fuerza de los árboles
+de decisión junto con la capacidad de modelar datos numéricos,
+relaciones no lineales entre los datos y la variable dependiente, y la
+habilidad de modelar una gran cantidad de variables. Una desventaja que
+presentan es que necesitan una gran cantidad de datos de entrenamiento
+(algo que no resulta un problema con el presente dataset).
 
-``` r
-# Check model hyperparameters
-modelLookup("gbm")
-```
-
-    ##   model         parameter                   label forReg forClass probModel
-    ## 1   gbm           n.trees   # Boosting Iterations   TRUE     TRUE      TRUE
-    ## 2   gbm interaction.depth          Max Tree Depth   TRUE     TRUE      TRUE
-    ## 3   gbm         shrinkage               Shrinkage   TRUE     TRUE      TRUE
-    ## 4   gbm    n.minobsinnode Min. Terminal Node Size   TRUE     TRUE      TRUE
-
-### 3.1) GBM con hiperparámtros por defecto
+### 3.1) Random Forest regression con hiperparámetros por defecto
 
 En este caso vamos a empezar a entrenar el modelo con los
-hiperparámetros por defecto. En este caso **los gbm sí son muy
-tendentes a sobreajustar los datos**, con lo que es necesario introducir
-una K-fold cross validation y emplearla para estimar la precisión del
-modelo. En este caso **empleamos una K-fold cross valdiation de 10x5**.
+hiperparámetros por defecto. Empleamos el paquete **ranger** (Wright
+and Ziegler, 2017) que resulta muy rápido para la realización de tareas
+de regresión con árboles aleatorios. El paquete ranger reporta el *OOB
+error*, pero aún así es adecuado evaluar el modelo sobre datos que no ha
+visto nunca. Para ello reordenamos los datos aleatoriamente, y
+reservamos un test set para comparar la *OOB r-squared*. En este caso
+**el test set va estar copuesto por el 25% de los datos**
 
 ``` r
-# Prepare control method
-fitControl <- trainControl(method = "repeatedcv",
-                           number = 3,
-                           repeats = 5)
-tictoc::tic()
-# Train model
-set.seed(42)
-GBM_Housing <- train(
-  price ~ .,
-  data = housing_reg,
-  method = "gbm",
-  trControl = fitControl,
-  verbose = FALSE)
-tictoc::toc()
-summary(GBM_Housing )
-GBM_Housing 
+# Randomly reoirder dataset
+set.seed(1234)
+housing_reg <- housing_reg[sample(nrow(housing_reg)),]
+
+# Ttrain and test sets
+n <- round(nrow(housing_reg)*0.75)
+train <- housing_reg[1:n, ]
+test <- housing_reg[(n+1):nrow(housing_reg), ]
+
+# Regression formular
+frmla <- price ~ bedrooms + bathrooms + sqft_living + view + grade + yr_built + zipcode + long +lat + waterfront
+library(ranger)
+
+RF_housing <- ranger(frmla, 
+                train, 
+                num.trees = 500,
+                importance = "impurity_corrected")
+RF_housing
 ```
+
+    ## Ranger result
+    ## 
+    ## Call:
+    ##  ranger(frmla, train, num.trees = 500, importance = "impurity_corrected") 
+    ## 
+    ## Type:                             Regression 
+    ## Number of trees:                  500 
+    ## Sample size:                      16210 
+    ## Number of independent variables:  10 
+    ## Mtry:                             3 
+    ## Target node size:                 5 
+    ## Variable importance mode:         impurity_corrected 
+    ## Splitrule:                        variance 
+    ## OOB prediction error (MSE):       0.037012 
+    ## R squared (OOB):                  0.8662578
+
+``` r
+# make predictions over test set
+predictions <- predict(RF_housing, test)$predictions
+```
+
+    ## Warning in predict.ranger(RF_housing, test): Forest was grown with
+    ## 'impurity_corrected' variable importance. For prediction it is advised to grow
+    ## another forest without this importance setting.
+
+``` r
+r <- cor(predictions, test$price)
+r*r
+```
+
+    ## [1] 0.8769753
+
+ 
+
+La r-squared sobre el test set es de 0.88, mientras que la OOB r-squared
+del modelo con los hiperparámetros por defecto es de 0.87. Parece
+bastante seguro asumir que la OOB r-squared no está mostrando un
+sobreajuste de los resultados, podemos emplearla como métrica de
+referncia para los siguientes modelos, y podemos emplear el datsaet
+completo.
+
+Vamos a probar a hacer un grid search de los hiperparámetros, para ver
+si mejora el modelo, aunque el resultado es bastante bueno. En este caso
+vamos a mantner constante la varianza como regla de separación, pero
+haciendo un grid search en el que se modifica el número de variables
+sobre las que realizar la separación de los nodos, el tamaño mínimo del
+nodo, y el número de árboles que componen el Random Forest.
 
 ## Bibliografía
 
-Friedman, J.H., 2020. Greedy Function Approximation: A Gradient Boosting
-Machine. The Annals of Statistics 29, 1189–1232.
+Breiman, L., 2001. Random Forests. Machine Learning 45, 5–32.
 
 Hamner, B., and Frasco, M., 2018. Metrics: Evaluation Metrics for
 Machine Learning. R package version 0.1.4.
@@ -2507,3 +2552,7 @@ T., Miller, E., Bache, S., Müller, K., Ooms, J., Robinson, D., Seidel,
 D., Spinu, V., Takahashi, K., Vaughan, D., Wilke, C., Woo, K., Yutani,
 H., 2019. Welcome to the Tidyverse. Journal of Open Source Software 4,
 1686. <https://doi.org/10.21105/joss.01686>
+
+Wright, M.N., Ziegler, A., 2017. ranger: A Fast Implementation of Random
+Forests for High Dimensional Data in C++ and R. Journal of Statistical
+Software 77, 17. <https://doi.org/10.18637/jss.v077.i01>
