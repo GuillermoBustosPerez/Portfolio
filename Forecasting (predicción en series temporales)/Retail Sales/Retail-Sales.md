@@ -301,7 +301,64 @@ retail %>% filter(price > 0) %>%
   theme(legend.position = "bottom")
 ```
 
-![](Retail-Sales_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+![](Retail-Sales_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->  
+
+El modelo de regresión lineal muestra una relación ligeramnete
+significaatiiva entre ventas y el precio (notese que esta relación
+desaparece a escala logarítmica y excluyendo casos en los que las ventas
+y el precio son igual cero).
+
+``` r
+# Lineal model of sales as a function of price
+summary(lm(sales ~ price, retail))
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = sales ~ price, data = retail)
+    ## 
+    ## Residuals:
+    ##     Min      1Q  Median      3Q     Max 
+    ## -106.38  -62.05  -17.19   36.06  452.95 
+    ## 
+    ## Coefficients:
+    ##             Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)   67.534      8.325   8.112 1.56e-15 ***
+    ## price         14.442      4.961   2.911  0.00369 ** 
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 80.36 on 935 degrees of freedom
+    ## Multiple R-squared:  0.008983,   Adjusted R-squared:  0.007923 
+    ## F-statistic: 8.475 on 1 and 935 DF,  p-value: 0.003685
+
+``` r
+# Lineal model of sales as a function of price (logaritmic)
+log_data <- retail %>% 
+  filter(sales > 0 & price >0) %>% 
+  transmute(log_sales = log(sales),
+            log_price = log(price))
+summary(lm(log_sales ~ log_price, log_data))
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = log_sales ~ log_price, data = log_data)
+    ## 
+    ## Residuals:
+    ##     Min      1Q  Median      3Q     Max 
+    ## -4.2794 -0.2966  0.2394  0.6636  2.0725 
+    ## 
+    ## Coefficients:
+    ##             Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)  4.12782    0.07164  57.620   <2e-16 ***
+    ## log_price    0.23813    0.13493   1.765    0.078 .  
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 1.138 on 823 degrees of freedom
+    ## Multiple R-squared:  0.00377,    Adjusted R-squared:  0.00256 
+    ## F-statistic: 3.115 on 1 and 823 DF,  p-value: 0.07796
 
 ## Bibliografía
 
