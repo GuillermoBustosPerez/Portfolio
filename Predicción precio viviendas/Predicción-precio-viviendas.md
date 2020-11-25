@@ -1814,7 +1814,7 @@ get_model_formula(10, regfit_full, "price")
 
     ## price ~ bedrooms + bathrooms + sqft_living + waterfront + view + 
     ##     grade + yr_built + zipcode + lat + long
-    ## <environment: 0x0000000015531238>
+    ## <environment: 0x0000000015523f58>
 
  
 
@@ -2520,7 +2520,58 @@ si mejora el modelo, aunque el resultado es bastante bueno. En este caso
 vamos a mantner constante la varianza como regla de separación, pero
 haciendo un grid search en el que se modifica el número de variables
 sobre las que realizar la separación de los nodos, el tamaño mínimo del
-nodo, y el número de árboles que componen el Random Forest.
+nodo, y el número de árboles que componen el Random Forest. Para
+aligerar el markdown únicamente se muestra el código que permite obtener
+la r-squared con las diferentes combinacions del grid search.
+
+``` r
+# range of hyperparameters
+mtry <- seq(4, 10, 1)
+min.node.size <- seq(3, 8, 1)
+splitrule = "variance"
+
+# Grid of possible combinations
+hyper_grid <- expand.grid(mtry = mtry,
+                          min.node.size = min.node.size ,
+                          splitrule = "variance"
+                         )
+
+# Train control
+fitControl <- trainControl(method = "oob",
+                           number = 1,
+                           verboseIter = TRUE)
+
+# Loop over different number of trees
+best_tune <- data.frame(
+  mtry = numeric(0),
+  min_node.size = numeric(0),
+  Num_Trees =numeric(0),
+  r_squared = numeric(0))
+
+my_seq <- seq(500, 700, 25)
+
+for (x in my_seq){
+  
+  RFH_housing <- train(frmla, 
+                       housing_reg,
+                       method = "ranger",
+                       trControl = fitControl,
+                       num.trees = x,
+                       tuneGrid = hyper_grid 
+  )
+  
+  Bst_R <- data.frame(
+    mtry = RFH_housing$bestTune[[1]],
+    min_node.size = RFH_housing$bestTune[[3]],
+    Num_Trees = x,
+    r_squared = RFH_housing$finalModel[[10]])
+  
+  best_tune <- rbind(best_tune, Bst_R)
+  
+  Bst_R <- c()
+  
+}
+```
 
 ## Bibliografía
 
