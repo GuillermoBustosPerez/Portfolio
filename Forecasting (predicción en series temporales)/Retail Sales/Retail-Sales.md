@@ -1,15 +1,15 @@
 Predicción ventas retail
 ================
 
-## Índice
+# Índice
 
 1)  Introducción  
-    1.1) Carga de los datos y primer vistazo  
+    1.1) Carga de los datos y primer vistazo\]  
 2)  Exploración de los datos
 
 ## 1\) Introducción
 
-El presnete dataset contiene el conjunto de ventas históriico de uno de
+El presente dataset contiene el conjunto de ventas histórico de uno de
 los principales vendedores al por menor de Brasil. Los datos están
 disponibles en:  
 <https://www.kaggle.com/tevecsystems/retail-sales-forecasting>
@@ -23,12 +23,12 @@ insatisfechos y daños en la imagen de la marca.
 
 Esto da lugar a que las **predicciones de series temporales a corto
 plazo** sean fundamentales en la venta al por menor y en la industria de
-bienes. En este dataset el objetivo es producir un modelo de prediccion
+bienes. En este dataset el objetivo es producir un modelo de predicción
 de demanda para intervalos de 2/3 semanas.
 
 ### 1.1) Carga de los datos y primer vistazo
 
-Vamos a mpezar por cargar las librerías de referencia **tidyverse**
+Vamos a empezar por cargar las librerías de referencia **tidyverse**
 (Wickham, 2017; Wickham et al., 2019), **zoo** (Zeileis and
 Grothendieck, 2005) y **xts** (Ryan, and Ulrich, 2020)
 
@@ -37,7 +37,7 @@ library(tidyverse);library(zoo); library(xts)
 ```
 
 ``` r
-Retail <- read.csv("Data/mock_kaggle.csv")
+retail <- read.csv("Data/mock_kaggle.csv")
 ```
 
 <table>
@@ -219,6 +219,89 @@ preco
 </tbody>
 
 </table>
+
+ 
+
+Vamos a cambiar el nombre de las columnas para evitar confusiones.
+
+``` r
+colnames(retail)[1] <- "date"
+colnames(retail)[2] <- "sales"
+colnames(retail)[3] <- "stock"
+colnames(retail)[4] <- "price"
+```
+
+ 
+
+## 2\) Exploración de los datos
+
+Lo primero es evaluar la estructura y composición de los datos. Dado que
+estamos trabajando con una serie temporal hay que transformar la columna
+de *date* a formato de fecha.
+
+``` r
+# Check data
+str(retail)
+```
+
+    ## 'data.frame':    937 obs. of  4 variables:
+    ##  $ date : chr  "2014-01-01" "2014-01-02" "2014-01-03" "2014-01-04" ...
+    ##  $ sales: int  0 70 59 93 96 145 179 321 125 88 ...
+    ##  $ stock: int  4972 4902 4843 4750 4654 4509 4329 4104 4459 5043 ...
+    ##  $ price: num  1.29 1.29 1.29 1.29 1.29 1.29 1.29 1.29 1.09 1.09 ...
+
+``` r
+dim(retail)
+```
+
+    ## [1] 937   4
+
+``` r
+# Make into date format
+retail$date <- as.Date(retail$date)
+```
+
+Vamos a representar gráficamente la evolución de ventas, stock y precio
+a lo largo de la serie temporal.
+
+``` r
+retail %>% pivot_longer(
+  c(sales, stock, price),
+  names_to = "Variable",
+  values_to = "units"
+) %>% 
+  
+  ggplot(aes(date, units, color = Variable)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~Variable, nrow = 3,
+                     scales = "free") +
+  ggsci::scale_color_aaas() +
+  theme_light() +
+  theme(legend.position = "none")
+```
+
+![](Retail-Sales_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+A primera vista no parece que el precio esté condicionando las ventas.
+Vamos a omitir los registros con precio 0 y comprobar visualmente si
+diferentes precios afectan a las ventas. No parece ser el caso, ya que
+el promedio de ventas es similar para tres intervalos con diferentes
+precios, mientras que el intervalo de mayor precio muestra
+aproximadamente el mismo número de ventas que el segundo intervalo de
+menor precio.
+
+``` r
+# Check if price affects sales  
+retail %>% filter(price > 0) %>% 
+  ggplot(aes(price, sales, fill = cut_width(price, 0.5))) +
+  geom_boxplot(aes(group = cut_width(price, 0.5))) +
+  ggsci::scale_fill_aaas() +
+  theme_light() +
+  theme(legend.position = "bottom")
+```
+
+![](Retail-Sales_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 ## Bibliografía
 
