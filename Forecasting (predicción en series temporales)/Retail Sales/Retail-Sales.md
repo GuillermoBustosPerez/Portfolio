@@ -4,7 +4,7 @@ Predicción ventas retail
 # Índice
 
 1)  Introducción  
-    1.1) Carga de los datos y primer vistazo\]  
+    1.1) Carga de los datos y primer vistazo  
 2)  Exploración de los datos
 
 ## 1\) Introducción
