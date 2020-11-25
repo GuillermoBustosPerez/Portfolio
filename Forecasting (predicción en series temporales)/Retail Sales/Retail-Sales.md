@@ -225,6 +225,7 @@ preco
 Vamos a cambiar el nombre de las columnas para evitar confusiones.
 
 ``` r
+# Change column names
 colnames(retail)[1] <- "date"
 colnames(retail)[2] <- "sales"
 colnames(retail)[3] <- "stock"
@@ -359,6 +360,40 @@ summary(lm(log_sales ~ log_price, log_data))
     ## Residual standard error: 1.138 on 823 degrees of freedom
     ## Multiple R-squared:  0.00377,    Adjusted R-squared:  0.00256 
     ## F-statistic: 3.115 on 1 and 823 DF,  p-value: 0.07796
+
+ 
+
+Vamos a visualizar las ventas anuales diarias. Para ello es necesario
+hacer dos transformaciones: extraer el año como una variable propia, y
+extraer el mes y día como otra variiable propia de tipo *date*.
+
+``` r
+retail<- retail %>% 
+  mutate(date_character = as.character(date)) %>% 
+  separate(date_character, 
+           into =c("year", "Month_Day"),  
+           sep = 5,
+           remove = TRUE) %>% 
+  select(-c(year)) %>% 
+  mutate(
+    Month_Day = as.Date(Month_Day, "%m-%d"),
+    year = lubridate::year(date)) 
+```
+
+``` r
+# Plot sales per year and month
+retail %>% 
+  ggplot(aes(Month_Day, sales, color = factor(year))) +
+  geom_line() +
+  ggsci::scale_color_d3() +
+  scale_x_date(date_breaks = "1 month",
+               date_labels = "%m") +
+  xlab("Month") +
+  theme_light() +
+  theme(legend.position = "bottom")
+```
+
+![](Retail-Sales_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
 ## Bibliografía
 
