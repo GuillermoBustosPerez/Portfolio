@@ -5,7 +5,11 @@ Predicción ventas retail
 
 1)  Introducción  
     1.1) Carga de los datos y primer vistazo  
-2)  Exploración de los datos
+2)  Exploración de los datos  
+    2.1) Análisis exploratorio visual  
+    2.2) Serie temporal semanal  
+3)  Modelo de predicción  
+    3.1) Comprobar el *White Noise*
 
 ## 1\) Introducción
 
@@ -262,6 +266,8 @@ dim(retail)
 retail$date <- as.Date(retail$date)
 ```
 
+### 2.1) Análisis exploratorio visual
+
 Vamos a representar gráficamente la evolución de ventas, stock y precio
 a lo largo de la serie temporal.
 
@@ -363,11 +369,12 @@ summary(lm(log_sales ~ log_price, log_data))
 
  
 
-Vamos a visualizar las ventas anuales diarias. Para ello es necesario
+Vamos a visualizar las ventas diarias por año. Para ello es necesario
 hacer dos transformaciones: extraer el año como una variable propia, y
-extraer el mes y día como otra variiable propia de tipo *date*.
+extraer el mes y día como otra variable propia de tipo *date*.
 
 ``` r
+# Get year amd month-day 
 retail<- retail %>% 
   mutate(date_character = as.character(date)) %>% 
   separate(date_character, 
@@ -393,9 +400,108 @@ retail %>%
   theme(legend.position = "bottom")
 ```
 
-![](Retail-Sales_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+![](Retail-Sales_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->  
+
+El gráfico de ventas diarias no es muy adecuado, así que aprovechamos
+para crear un boxplot de ventas por mes y año.
+
+``` r
+# Boxplots of monthly sales per year
+retail %>% 
+  mutate(month = lubridate::month(date)) %>% 
+  ggplot(aes(factor(month), sales, fill = factor(year))) +
+  geom_boxplot() +
+  xlab("Month") +
+  ggsci::scale_fill_d3() +
+  theme(legend.position = "bottom") 
+```
+
+![](Retail-Sales_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->  
+
+### 2.2) Serie temporal semanal
+
+En el enunciado se señala la importancia de que las predicciones sean
+semanales, con la capacidad de crear predicciones para intervales de 2/3
+semanas. Para ello es necesario transformar la serie temporal generando
+la suma de ventas para cada semana.
+
+``` r
+# Make into xts objetc
+retail_xts <- as.xts(retail [ , -c(1,5,6)], order.by = retail$date)
+```
+
+``` r
+# Weekly sum of sales
+retail_weeks <- apply.weekly(retail_xts, colSums)
+
+plot(retail_weeks[,1])
+```
+
+![](Retail-Sales_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+ 
+
+## 3\) Modelo de predicción
+
+### 3.1) Comprobar el *White Noise*
+
+Lo fundamental al inicio del análisis de cualquier serie temporal es
+comprobar si se trata de *white noise*. En este caso resulta fundamental
+emplear la librería **forecast** (Hyndman and Khandakar, 2008) y seguir
+los principios de análisis de series temporales expuestos en Hyndman y
+Athanasopoulos (2019). Para ello resulta esencial ver el
+**autocorrelation plot** y hacer la prrueba Ljung-Box (Ljung and Box,
+1978)
+
+``` r
+library(forecast)
+```
+
+``` r
+# Autocorrelation plot
+ggAcf(retail_weeks[,1])
+```
+
+![](Retail-Sales_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+
+``` r
+# Ljung-Box test of white noise
+Box.test(retail_weeks[,1],
+         lag = 6,
+         fitdf = 0,
+         type = "Lj")
+```
+
+    ## 
+    ##  Box-Ljung test
+    ## 
+    ## data:  retail_weeks[, 1]
+    ## X-squared = 60.984, df = 6, p-value = 2.839e-11
+
+ 
+
+El autocorrelation plot muestra que seguramente no se trata de
+*white-noise*, y que hay información utilizable en los periodos
+anteriores para realizar predicciones futuras. La prueba Ljung-Box
+confirma que no se trata de *white noise*.
+
+``` r
+retail_ts <- ts(retail_weeks[,1],
+                start = 2014,
+                frequency = 52)
+```
 
 ## Bibliografía
+
+Hyndman, R.J., Athanasopoulos, 2019. Forecasting: Principles & Practice,
+3rd edition. ed. OTexts, Melbourne, Australia.
+
+Hyndman, R.J., Khandakar, Y., 2008. Automatic Time Series Forecasting:
+The forecast Package for R. J. Stat. Soft. 27.
+<https://doi.org/10.18637/jss.v027.i03>
+
+Ljung, G.M., Box, G.E.P., 1978. On a Measure of Lack of Fit in Time
+Series Models. Biometrika 65, 297–303.
 
 Ryan, J.A. and Ulrich,J.M., 2020. xts: eXtensible Time Series. R package
 version 0.12.1. <https://CRAN.R-project.org/package=xts>
