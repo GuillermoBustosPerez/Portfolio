@@ -578,11 +578,11 @@ estacionaria, haciendo que sea poco adecuada para modelos ARIMA.
 
   - Duarante la mayor parte de la serie temporal no se observa una
     tendencia, salvo en el segundo cuarto de 2016, donde parece haber
-    una tendencia ascendente.
-      - Hay picos de ventas, pero sin una estacionalidad clara  
-      - Se trata de datos semanales, lo cual implica periodos
-        estacionales sean muy largos que no son manejados dde forma
-        eficiente por la mayoría de los modelos.
+    una tendencia ascendente.  
+  - Hay picos de ventas, pero sin una estacionalidad clara  
+  - Se trata de datos semanales, lo cual implica periodos estacionales
+    sean muy largos que no son manejados de forma eficiente por la
+    mayoría de los modelos.
 
 <!-- end list -->
 
@@ -630,16 +630,312 @@ autoplot(train_ts) +
             color = "gold") 
 ```
 
-![](Retail-Sales_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
+![](Retail-Sales_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->  
+
+Con esta visualización queda claro que el modelo ARIMA no es el más
+adecuado para realizar las estimaciones. Aún así conviene visualizar las
+proyecciones junto con los intervalos de confianza.
+
+``` r
+# Forecast of each model along confidance
+ggpubr::ggarrange(
+  
+  (autoplot(train_ts) +
+     autolayer(arima_forecast,
+                     series = "Auto ARIMA", PI = TRUE, 
+          color = "navyblue") +
+    autolayer(test_ts, color = "red")),
+  
+  (autoplot(train_ts) +
+      autolayer(snaive(train_ts, h = 20, lambda = BC),
+            series = "Seasonal naïve", PI = TRUE,
+            color = "purple")) +
+    autolayer(test_ts, color = "red"),
+  
+   (autoplot(train_ts) +
+      
+      autolayer(stlf(train_ts, h = 20, lambda = BC),
+            series = "stlf", PI = TRUE, 
+            color = "gold") +
+      autolayer(test_ts, color = "red")
+     
+   ), ncol = 1
+)
+```
+
+![](Retail-Sales_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->  
+
+El cálculo de las métricas de precisión de los modelos muestra que el
+modelo STLF y el estacional naïve tienen valores similares.
+
+``` r
+stlf_forecast <- stlf(train_ts, h = 20, lambda = BC)
+snaive_forecast <- snaive(train_ts, h = 20, lambda = BC)
+
+Accuracy <- data.frame(rbind(accuracy(stlf_forecast, test_ts)[2, 1:8],
+                                accuracy(snaive_forecast, test_ts)[2, 1:8],
+                                accuracy(arima_forecast, test_ts)[2, 1:8]))
+
+colnames(Accuracy) <-  colnames(accuracy(stlf_forecast, test_ts))
+
+Models  <- c("STLF", "S-naive", "ARIMA")
+Accuracy <- cbind(Models,Accuracy)
+```
+
+<table>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+Models
+
+</th>
+
+<th style="text-align:right;">
+
+ME
+
+</th>
+
+<th style="text-align:right;">
+
+RMSE
+
+</th>
+
+<th style="text-align:right;">
+
+MAE
+
+</th>
+
+<th style="text-align:right;">
+
+MPE
+
+</th>
+
+<th style="text-align:right;">
+
+MAPE
+
+</th>
+
+<th style="text-align:right;">
+
+MASE
+
+</th>
+
+<th style="text-align:right;">
+
+ACF1
+
+</th>
+
+<th style="text-align:right;">
+
+Theil’s U
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+STLF
+
+</td>
+
+<td style="text-align:right;">
+
+528.4004
+
+</td>
+
+<td style="text-align:right;">
+
+727.4158
+
+</td>
+
+<td style="text-align:right;">
+
+597.2324
+
+</td>
+
+<td style="text-align:right;">
+
+39.03600
+
+</td>
+
+<td style="text-align:right;">
+
+53.26733
+
+</td>
+
+<td style="text-align:right;">
+
+1.534676
+
+</td>
+
+<td style="text-align:right;">
+
+0.2776812
+
+</td>
+
+<td style="text-align:right;">
+
+1.357749
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+S-naive
+
+</td>
+
+<td style="text-align:right;">
+
+511.1500
+
+</td>
+
+<td style="text-align:right;">
+
+738.1334
+
+</td>
+
+<td style="text-align:right;">
+
+601.4500
+
+</td>
+
+<td style="text-align:right;">
+
+40.06477
+
+</td>
+
+<td style="text-align:right;">
+
+54.79969
+
+</td>
+
+<td style="text-align:right;">
+
+1.545513
+
+</td>
+
+<td style="text-align:right;">
+
+0.2530285
+
+</td>
+
+<td style="text-align:right;">
+
+1.509951
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+ARIMA
+
+</td>
+
+<td style="text-align:right;">
+
+576.2987
+
+</td>
+
+<td style="text-align:right;">
+
+718.3141
+
+</td>
+
+<td style="text-align:right;">
+
+589.9789
+
+</td>
+
+<td style="text-align:right;">
+
+45.15836
+
+</td>
+
+<td style="text-align:right;">
+
+49.04477
+
+</td>
+
+<td style="text-align:right;">
+
+1.516037
+
+</td>
+
+<td style="text-align:right;">
+
+0.3415656
+
+</td>
+
+<td style="text-align:right;">
+
+1.309740
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
 
 ### 3.3) ANN
 
 ``` r
-nnetar(train_ts, 30, 8, 8, lambda = BC) %>% 
+forecast_ANN <- nnetar(train_ts, 30, 8, 8, lambda = BC) %>% 
   forecast(h = 20) %>% 
   autoplot() +
   autolayer(test_ts) +
   theme(legend.position = "bottom")
+
+accuracy(forecast_ANN, test_ts)
 ```
 
 ## Bibliografía

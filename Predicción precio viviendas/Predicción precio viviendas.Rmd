@@ -1,0 +1,561 @@
+---
+title: "Predicción precio viviendas"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Índice   
+
+1) Introducción  
+2) Regresión lineal múltiple   
+  2.1) Correlaciones entre predictores   
+  2.2) Selección de variables (*Best sub-set selection*)    
+  2.3) Entrenamiento del modelo de regresión lineal múltiple    
+  2.4) Evaluación del modelo de regresión lineal múltiple    
+  2.5) Conclusión: Ventajas y desventajas del modelo de regresión lineal múltiple  
+  2.6) Regresión lineal múltiple sobre valores logarítmicos
+
+3) Random Forest Regression    
+  3.1) Random Forest con hiperparámetros por defecto   
+  3.2) Random Forest con Grid search  
+  3.3) Evaluación del modelo de Random Forest
+
+4) Concluyendo   
+  4.1) Comparando los modelos  
+  4.2) Del modelo a datos útiles
+
+## 1) Introducción   
+
+Mencionabamos en el inicio que se trata de un **ejercicio clásico de regresión** (predecir un outcome numérico).  
+
+Vamos a **empezar por una regresión lineal múltiple**. Es bueno empezar por aquí ya que:  
+  
+* Sirve como **referencia de un mínimo exigible al resto de los modelos**   
+* Ofrece una **fácil interpretabilidad**   
+* Aunque no es siempre correcta, nunca está completamnete equivocada   
+
+En este caso vamos a emplear la base de datos de dominio público de viviendas de King County (Washington State, USA). Se trata de un datset de 21613 viviendas con 21 variables asociadas al precio. Las ventas se produjeron entre mayo de 2014 y mayo de 2015.
+
+Empezamos por cargar el conjunto de librerías de **tidyverse** (Wickham, 2017; Wickham et al., 2019). El dataset está disponible en:  
+https://www.kaggle.com/shivachandel/kc-house-data 
+
+```{r, include= FALSE}
+library(tidyverse)
+library(kableExtra)
+housing <- read.csv("J:/06 CAMPOS PROPIOS LABORAL/Data Science CV/Code Examples for Portfolio/06 Precio viviendas/kc_house_data.csv")
+```
+```{r, eval = FALSE}
+# Read in the data
+housing <- read.csv("Data/kc_house_data.csv")
+```
+
+```{r}
+# Get dimensions of dataset
+dim(housing)
+```
+```{r}
+# Variable structure  
+str(housing)
+```
+
+```{r echo=FALSE}
+# Instead of head
+kable(housing[1:5,])
+```
+\ 
+
+Hay algunas variables que a primera vista que carecen de utilidad para realizar la regresión lineal, como son el identificador y la fecha, mientras que el código postal, la latitud y longitud son indicadores de localización que pueden asociarse al precio.
+
+```{r}
+# Price according to location
+housing %>% ggplot(aes(lat, long, size = price , color =zipcode)) +
+  geom_point(alpha = 0.1) +
+  coord_fixed()
+```
+
+
+
+## 2) Regresión lineal múltiple   
+
+En este caso vamos a realizar una regresión lineal múltiple con la mejor sub-selección de variables. Recordamos algunos de los principios básicos de la regresión lineal (James et al., 2013):  
+
+  * La regresión lineal Asume que la relación entre la variable dependiente (*Y*) y las variables predictoras (<img src="https://render.githubusercontent.com/render/math?math=X_1, X_2, X_3...X_n">) es lineal.   
+  * Por consiguiente, si la regresión lineal simple asume que:   
+
+<img src="https://latex.codecogs.com/gif.latex?Y&space;=&space;\beta_{0}&space;&plus;&space;\beta_{1}X&space;&plus;&space;\epsilon" title="Y = \beta_{0} + \beta_{1}X + \epsilon" />   
+
+  * Entonces la **regresión lineal mútiple asume**:  
+
+<img src="https://latex.codecogs.com/gif.latex?Y&space;=&space;\beta_{0}&space;&plus;&space;\beta_{1}X_{1}&space;&plus;&space;\beta_{2}X_{2}&space;&plus;&space;\beta_{n}X_{n}&space;&plus;&space;\epsilon" title="Y = \beta_{0} + \beta_{1}X_{1} + \beta_{2}X_{2} + \beta_{n}X_{n} + \epsilon" />    
+
+Siendo:    
+
+* *Y* la variable de respuesta a predecir   
+
+* *X* las variables predictoras   
+
+* <img src="https://latex.codecogs.com/gif.latex?\beta_{n}" title="\beta_{0}" />: el intercept (constante que representa el punto de contacto de la recta en valor 0)     
+
+* <img src="https://latex.codecogs.com/gif.latex?\beta_{n}" title="\beta_{n}" />: el coeficiente/parámetro de la variable.   
+
+* <img src="https://latex.codecogs.com/gif.latex?\epsilon" title="\epsilon" />: corresponde al término de error     
+  
+En la práctica puede decirse que la regresión linel nunca es completamente correcta, pero tampoco está completamente acertada. Prescindimos de las variables no necesarias y ahora tiene mucho mejor aspecto.  
+
+```{r}
+# Check column names 
+colnames(housing)
+
+# Remove non-usefull columns
+housing_reg <- housing %>% 
+  select(-c(id, date))
+```
+```{r echo=FALSE}
+# Instead of head
+kable(housing_reg[1:5,])
+```
+\ 
+
+### 2.1) Correlaciones entre predictores   
+
+Ahora tenemos que tener cuidad con las variables que muestran un alto grado de colinearidad: variables predictivas que tienen un altto grado de correlación. Esto se debe a que la colinearidad entre variables predictivas genera alteraciones en los signos de los coeficientes, dificultando su intepretabilidad. Aunque el modelo general no se ve demasiado afectado, es importante tener esto en cuenta.   
+
+```{r}
+# Correlation matrix
+cor <-cor(housing_reg[,-c(6,7,8,9, 10, 15, 16, 17)])
+
+# Plot
+corrplot::corrplot(cor, method = "color",
+                   addCoef.col = TRUE,
+                   number.font = 2,
+                   number.cex = 0.75,
+                   type = "lower",
+                   sig.level = 0.001,
+                   insig = "blank")
+```
+
+Combinene recordar que en esta tabla los números representan la correlación entre variables, y no la correlación lineal.  
+
+\ 
+
+### 2.2) Selección de variables (*Best sub-set selection*)     
+
+Dado que tenemos menos de 20 variables. podemos hacer la mejor subselección de variables empleando el paquete **leaps** (Lumley T. based on Fortran code by Alan Miller, 2020).   
+
+Lo primero es **determinar el número y qué variables vamos a incluir** en el modelo de regresión lineal múltiple.
+
+```{r}
+#### Load leaps library
+library(leaps)
+
+#### Select subset of best variables changing limit of variables
+regfit_full <- regsubsets(price ~ bedrooms + bathrooms + sqft_living + sqft_lot + floors + waterfront +view + condition + 
+grade + sqft_above + sqft_basement + yr_built + yr_renovated + zipcode + lat + long + sqft_living15 + sqft_lot15,
+                          data = housing_reg,
+                          nvmax = 18)
+
+#### Plots Showing the best number of variables
+reg_summary <- summary(regfit_full)
+which.min(reg_summary$cp)
+which.max(reg_summary$adjr2)
+```
+```{r, fig.height=3, fig.align='center'}
+# Plot cp and adjusted rsquared according to n predictors
+data.frame(reg_summary[4], 
+           reg_summary[5],
+           Predictors  = seq(1, 17, 1)) %>% 
+  pivot_longer(c(adjr2, cp),
+               names_to = "Parameters",
+               values_to = "Estimation") %>% 
+  ggplot(aes(Predictors, Estimation, color = Parameters)) +
+  geom_line() +
+  geom_point() +
+  ggsci::scale_color_aaas() +
+  theme_light() +
+  facet_wrap(~Parameters, scales = "free") +
+  theme(legend.position = "none")
+```
+\ 
+
+Con los resultados de subselección vemos: 
+
+* El *cp* alcanza un mínimo con `r which.min(reg_summary$cp)` predictores  
+* La adjusted r-squared alcanza un máximo con `r which.max(reg_summary$adjr2)` predictores      
+* Los gráficos de evolución del *cp* y la *adjusted r-squared* muestra que la mejor combinación de variables **se estabiliza** a partir de los **diez u once predictores**. Es mejor elegir el modelo más simple que no suponga un empeoramiento sustancial con respecto al modelo óptimo (Hastie et al., 2009). Por consiguiente elegimos diez predictores.   
+
+Ahora vamos a visualizar **qué variables** son más estables y mejores para el modelo.   
+
+```{r, fig.width=18, fig.height=8}
+par(mfrow  = c(1,2))
+plot(regfit_full, scale = "Cp")
+plot(regfit_full, scale = "adjr2")
+```
+\ 
+
+En este caso vemos claramente que *sqft_living*, *grade* y *waterfront* son algunas de las variables más importantes. Por algún mottivo la variable  *yr_renovated* aparece como una de las más importantes, pero veremos en la siguiente parte del análisis que en relidad la variable más apropiada es *yr_built*. Otras variables de localización también son importantes para el modelo, como la longitud y la latitud.  
+
+Con esto podemos emplear una **función que nos determine qué predictores son mejores para un modelo con ocho variables**.  
+
+```{r}
+# Function to get best subset of predictors  
+get_model_formula <- function(id, object, outcome){
+  # get models data
+  models <- summary(object)$which[id,-1]
+  # Get outcome variable
+  #form <- as.formula(object$call[[2]])
+  #outcome <- all.vars(form)[1]
+  # Get model predictors
+  predictors <- names(which(models == TRUE))
+  predictors <- paste(predictors, collapse = "+")
+  # Build model formula
+  as.formula(paste0(outcome, "~", predictors))
+}
+
+get_model_formula(10, regfit_full, "price")
+```
+\ 
+
+### 2.3) Entrenamiento del modelo de regresión lineal múltiple       
+
+Ya tenemos la fórmula, así que basta con entrenar el modelo y obtener los datos de parámtros y coeficientes correspondientes. Recordamos que hemos detectado varias relaciones de colinearidad entre varias predictoras, con lo que la estimación de coeficientes de los predictores debe ser observada con prudencia.       
+Aunque **los modelos de regresión lineal suelen tender poco al sobreajuste** de los datos (**overfiting**), sigue considerándose buena práctica dividir entre train/test sets para evaluar el modelo con datos que no ha visto. En este caso usamos la librería **caret** (Kuhn, 2008)
+
+```{r, message=FALSE, warning=FALSE}
+library(caret)
+#### Model k-fol cross validation ####
+set.seed(123)
+
+# Set control parameters
+train.control <- trainControl(method = "repeatedcv", 
+                              number = 10, 
+                              repeats = 20,
+                              savePredictions = TRUE)
+
+# train model
+MLR_Model <- train(price ~ bedrooms + bathrooms + sqft_living + waterfront + view + 
+                     grade + yr_built + zipcode + lat + long, 
+               method = "lm",
+               data = housing_reg,
+               trControl = train.control)
+
+# Model data
+summary(MLR_Model)
+MLR_Model$results
+```
+\ 
+
+Si entrenamos nuevamente el modelo dejando fuera la K-fold cross validation vemos que obtenemos el mismo resultado (como ya hemos señalado antes, esto se debe a que los modelos de regresión lineal no tienden a sobreajustar los datos, especialmente en datasets tan grandes).  
+
+
+```{r}
+# Final model
+MLR_Model <- lm(price ~ bedrooms + bathrooms + sqft_living + waterfront + view + 
+                     grade + yr_built + zipcode + lat + long, 
+               data = housing_reg)
+summary(MLR_Model)
+```
+
+Con la tabla de las estimaciones de los coeficientes de los predictores podemos hacer una **rápida interpretación del modelo**. Por ejemplo, observamos que **el precio se incrementa significativamente a medida que nos desplazamos hacia el este**, que también es la zona costera (el precio también se incrementa al disponer de una línea de costa). Por ota parte la longitud tiene un efecto inverso sobre el precio: cuanto más al norte, más disminuye el precio.       
+
+### 2.4) Evaluación del modelo de regresión lineal múltiple   
+
+Para procesar modelos es particularmente útil la librería **broom** (Robinson et al., 2020) que nos permite generar dataframes que contengan los valores actuales, predecidos, residuals, etc. sto facilita bastante el trato posterior del modelo. En combinación con la biblioteca **Metrics** (Hamner and Frasco, 2018) permiteo btener diferentes métricas de evaluación de modelos.    
+
+En este caso las métricas más adecuadas para la evaluación del modelo son la MAE, RMSE, MAPE junto con el adjuseted r-square. Vamos a guardarlas en un dataframe que luego iremos aumentando con otros modelos.  
+
+```{r}
+# Make predictions into dataframe
+MLR_DF <- broom::augment(MLR_Model)
+
+# Model evaluation Metrics 
+Models <- data.frame(
+  "Model" = "Multiple Linear Regression",
+  "MAE" = Metrics::mae(MLR_DF$price, MLR_DF$.resid),
+  "RMSE" = Metrics::rmse(MLR_DF$price, MLR_DF$.resid),
+  "MAPE"= Metrics::mape(MLR_DF$price, MLR_DF$.resid),
+  "Correlation" = summary(MLR_Model)[[9]])
+```
+
+```{r echo=FALSE}
+# Instead of head
+kable(Models)
+```
+
+\ 
+
+Ahora que tenemos las métricas, podemos generar varias visualizaciones comunes para la evaluación de modelos. En este aso vamos a centrarnos **en tres visualizaciones**:  
+1) Diagrama de dispersión (*scatter plot*) de distribución de valores predecidos y valores reales junto con la recta de regresión.  
+2) Diagrama de dispersión del valor a predecir y los residuals   
+3) Gráfico de densidad de distribución de los residuals   
+
+Empecemos por los gráficos de dispersión de la correlación entre la predicción y el precio y de los residuals con el precio. Vamos a mantener constante la relación entre los ejes  para 
+
+```{r, fig.align='center'}
+# Scatter plot of correlation and residuals
+ggpubr::ggarrange(
+  (
+    MLR_DF %>% ggplot(aes(.fitted, price)) +
+      geom_point(alpha = .2) +
+      geom_line(aes(y = .fitted), size = 1, col = "blue") +
+      coord_fixed() + 
+      theme_light() +
+      geom_vline(xintercept = 0) + geom_hline(yintercept = 0) + 
+      xlab("Predicted") +
+      ylab("Price")),
+  
+  (
+    MLR_DF %>% ggplot(aes(price, .resid)) +
+     geom_point(alpha = .2) +
+      ylab("Residuals") +
+      xlab("Price") +
+      theme_light()
+    ),
+  ncol = 2, align = "h")
+```
+\ 
+
+Un vistazo rápido permite dejar claro que aunque tenemos una correlación aceptable, **el modelo deja mucho que desear**. Vemos que en la parte de mayor valor de precio el modelo sistemáticamente infraestima las predicciones. Esto se transmite claramente en el gráfico de dispersión de residuals con respecto al precio, donde podemos ver que **los residuals se incrementan positivamente a medida que incrementa el precio**. Un modelo de correlaicón lineal entre los residuals y el precio nos confirma esto proporcionando una correlación lineal de `r round(summary(lm(price ~ .resid, MLR_DF))[[8]], 2)`. 
+
+```{r}
+# Check if residuals are correlated with price
+summary(lm(price ~ .resid, MLR_DF))
+```
+\ 
+
+Por último el gráfico de densidad de distribución de los residuals nos permite ver que, aunque la gran mayoría de los residuals están centrados alrededor del valor 0 con una distribución aparentemente normal, lastran una importante cola hacia el margen de mayor valor. Esto está en línea con lo que hemos visto previamente.   
+
+```{r, fig.height=3.5, fig.width=7.5,  fig.align='center'}
+# Residuals density plot
+MLR_DF %>% ggplot(aes(.resid)) +
+  geom_density(color = "blue", fill = "lightblue")  +
+  theme_light() +
+  geom_vline(xintercept = 0) + geom_hline(yintercept = 0) + 
+  geom_vline(xintercept = median(MLR_DF$.resid), color = "red") + 
+  xlab("Residuals") + ylab("Density")
+```
+
+
+
+### 2.5) Conclusión: Ventajas y desventajas del modelo de regresión lineal múltiple  
+
+**Ventajas** del modelo de regresión múltiple:  
+
+* Proporciona una fácil intepretabilidad de qué variables influyen más en el precio de la vivenda  
+* Los siguientes modelos deben tener una adjusted r-squared de al menos `r summary(MLR_Model)[[9]]`
+
+
+**Desventajas** del modelo de regresión lineal múltiple:  
+
+* La correlación entre el los residuals y el precio indica que cuanto más elevado sea el precio más será infravalorardo por el modelo (atribuirá a esa casa un valor menor)   
+* En algunos casos el modelo predice valores negativos para las viviendas. Esto es común a los modelos de regresión lineal para predecir precios, pero es fácilmente corregible adaptando el precio a la escala logarítmica.  
+
+### 2.6) Regresión lineal múltiple sobre valores logarítmicos   
+
+Para subsanar rápidamente uno de los defectos del anterior modelo vamos a transformar la variable dependiente (el precio) a la escala logarítmica. El resto de variables las vamos a escalar. Este procedimiento se realiza para obtener distribuciones paramétricas de las variables, y aunque suele resultar en modelos más precisos, perdemos parte de la interpretabilidad del modelo.   
+
+```{r}
+# Log of price
+price <- housing_reg %>% transmute(price = log(price))
+
+# Scale variables
+housing_reg <- scale(housing_reg[-1])
+
+# Data frame
+housing_reg <- cbind(price, housing_reg)
+```
+
+Volvemos a entrenar el modelo con las nuevas variables. En este caso resulta en un incremento significativo de la adjusted r-squared.  
+
+```{r}
+# Model with log price and scaled variables
+MLR_Log <- lm(price ~ bedrooms + bathrooms + sqft_living + view + 
+                  grade + yr_built + zipcode + long +lat + waterfront, 
+                data = housing_reg)
+
+summary(MLR_Log)
+```
+\ 
+
+Rápidamente volvemos a observar los gráficos de dispersión de predicciones y variables actuales, residuals y valores actuales, y densidad de los residuals.  
+
+```{r}
+# New model as data frame
+MLR_Log_DF <- broom::augment(MLR_Log)   
+
+# Scatter plot of correlation and residuals
+ggpubr::ggarrange(
+  (
+    MLR_Log_DF %>% ggplot(aes(.fitted, price)) +
+      geom_point(alpha = .2) +
+      geom_line(aes(y = .fitted), size = 1, col = "blue") +
+      coord_fixed() + 
+      theme_light() +
+      xlab("Predicted") +
+      ylab("Price")),
+  
+  (
+    MLR_Log_DF %>% ggplot(aes(price, .resid)) +
+     geom_point(alpha = .2) +
+      ylab("Residuals") +
+      xlab("Price") +
+      coord_fixed() +
+      theme_light()
+    ),
+  ncol = 2, align = "h")
+```
+```{r}
+# Residuals density plot
+MLR_Log_DF %>% ggplot(aes(.resid)) +
+  geom_density(color = "blue", fill = "lightblue")  +
+  theme_light() +
+  geom_vline(xintercept = 0) + geom_hline(yintercept = 0) + 
+  geom_vline(xintercept = median(MLR_Log_DF$.resid), color = "red") + 
+  xlab("Residuals") + ylab("Density")
+```
+\ 
+
+Rápidamente podemos ver que el modelo ha mejorado. La distribución de los residuals es mejor, aunque en este caso se ha invertido, habiendo un claro sesgo hacia abajo en los valores más bajos del precio (la predicción del precio de las viviendas más baratas suele ser más baja). Un modelo de regresión lineal de los residuals en base al precio nos muestra que tiene una r-squared de `r round(summary(lm(.resid ~ price, MLR_Log_DF))[[8]], 2)`, significativamente más baja que la del anterior modelo.  
+
+```{r}
+# Linear model of residuals
+summary(lm(.resid ~ price, MLR_Log_DF))
+```
+\ 
+
+Vamos a finalizar este apartado añadiendo los resultados de las métricas de evaluación junto con el anterior modelo. Conviene recordar que **los dos modelos están en escalas diferentes (lineal y logarítmica)**, con lo cual las métricas MAE y RMSE no son útiles para comparar ambos modelos y hay que tener como referencia la adjusted r-squared.  
+
+```{r}
+# Model evaluation Metrics 
+temp <- data.frame(
+  "Model" = "Mult. Linear Reg. Log scale",
+  "MAE" = Metrics::mae(MLR_Log_DF$price, MLR_Log_DF$.resid),
+  "RMSE" = Metrics::rmse(MLR_Log_DF$price, MLR_Log_DF$.resid),
+  "MAPE"= Metrics::mape(MLR_Log_DF$price, MLR_Log_DF$.resid),
+  "Correlation" = summary(MLR_Log)[[9]])
+
+Models <- rbind(Models, temp)
+```
+
+```{r echo=FALSE}
+# Instead of head
+kable(Models)
+```
+
+
+
+## 3) Random Forest regression    
+
+Los *random forests* (Breiman, 2001) combinan la fuerza de los árboles de decisión junto con la capacidad de modelar datos numéricos, relaciones no lineales entre los datos y la variable dependiente, y la habilidad de modelar una gran cantidad de variables. Una desventaja que presentan es que necesitan una gran cantidad de datos de entrenamiento (algo que no resulta un problema con el presente dataset). 
+
+### 3.1) Random Forest regression con hiperparámetros por defecto       
+
+En este caso vamos a empezar a entrenar el modelo con los hiperparámetros por defecto. Empleamos el paquete **ranger** (Wright and Ziegler, 2017) que resulta muy rápido para la realización de tareas de regresión con árboles aleatorios. El paquete ranger reporta el *OOB error*, pero aún así es adecuado evaluar el modelo sobre datos que no ha visto nunca. Para ello reordenamos los datos aleatoriamente, y reservamos un test set para comparar la *OOB r-squared*. En este caso **el test set va estar copuesto por el 25% de los datos**   
+
+```{r}
+# Randomly reoirder dataset
+set.seed(1234)
+housing_reg <- housing_reg[sample(nrow(housing_reg)),]
+
+# Ttrain and test sets
+n <- round(nrow(housing_reg)*0.75)
+train <- housing_reg[1:n, ]
+test <- housing_reg[(n+1):nrow(housing_reg), ]
+
+# Regression formular
+frmla <- price ~ bedrooms + bathrooms + sqft_living + view + grade + yr_built + zipcode + long +lat + waterfront
+library(ranger)
+
+RF_housing <- ranger(frmla, 
+                train, 
+                num.trees = 500,
+                importance = "impurity_corrected")
+RF_housing
+
+# make predictions over test set
+predictions <- predict(RF_housing, test)$predictions
+
+r <- cor(predictions, test$price)
+r*r
+```
+\ 
+
+La r-squared sobre el test set es de `r round(r*r, 2)`, mientras que la OOB r-squared del modelo con los hiperparámetros por defecto es de `r round(RF_housing$r.squared, 2)`. Parece bastante seguro asumir que la OOB r-squared no está mostrando un sobreajuste de los resultados, podemos emplearla como métrica de referncia para los siguientes modelos, y podemos emplear el datsaet completo.    
+
+Vamos a probar a hacer un grid search de los hiperparámetros, para ver si mejora el modelo, aunque el resultado es bastante bueno. En este caso vamos a mantner constante la varianza como regla de separación, pero haciendo un grid search en el que se modifica el número de variables sobre las que realizar la separación de los nodos, el tamaño mínimo del nodo, y el número de árboles que componen el Random Forest. Para aligerar el markdown únicamente se muestra el código que permite obtener la r-squared con las diferentes combinacions del grid search.  
+
+```{r eval=FALSE}
+# range of hyperparameters
+mtry <- seq(4, 10, 1)
+min.node.size <- seq(3, 8, 1)
+splitrule = "variance"
+
+# Grid of possible combinations
+hyper_grid <- expand.grid(mtry = mtry,
+                          min.node.size = min.node.size ,
+                          splitrule = "variance"
+                         )
+
+# Train control
+fitControl <- trainControl(method = "oob",
+                           number = 1,
+                           verboseIter = TRUE)
+
+# Loop over different number of trees
+best_tune <- data.frame(
+  mtry = numeric(0),
+  min_node.size = numeric(0),
+  Num_Trees =numeric(0),
+  r_squared = numeric(0))
+
+my_seq <- seq(500, 700, 25)
+
+for (x in my_seq){
+  
+  RFH_housing <- train(frmla, 
+                       housing_reg,
+                       method = "ranger",
+                       trControl = fitControl,
+                       num.trees = x,
+                       tuneGrid = hyper_grid 
+  )
+  
+  Bst_R <- data.frame(
+    mtry = RFH_housing$bestTune[[1]],
+    min_node.size = RFH_housing$bestTune[[3]],
+    Num_Trees = x,
+    r_squared = RFH_housing$finalModel[[10]])
+  
+  best_tune <- rbind(best_tune, Bst_R)
+  
+  Bst_R <- c()
+  
+}
+```
+
+
+
+## Bibliografía   
+
+Breiman, L., 2001. Random Forests. Machine Learning 45, 5–32.  
+
+Hamner, B., and Frasco, M., 2018. Metrics: Evaluation Metrics for Machine Learning. R package version 0.1.4.
+
+Hastie, T., Tibshirani, R., Friedman, J., 2009. The Elements of Statistical Learning. Data Mining, Inference, and Prediction, Second Edition. ed, Springer Series in Statistics. Springer.  
+
+James, G., Witten, D., Hastie, T., Tibshirani, R., 2013. An Introduction to Statistical Learning, Springer Texts in Statistics. Springer New York, New York, NY. https://doi.org/10.1007/978-1-4614-7138-7   
+
+Kuhn, M., 2008. Building Predictive Models in R using the caret Package. Journal of Statistical Software 28. https://doi.org/10.18637/jss.v028.i05    
+
+Robinson, D., Hayes A., Couch, S., 2020. broom: Convert Statistical Objects into Tidy Tibbles. R package version 0.7.0. https://CRAN.R-project.org/package=broom
+
+Lumley T. based on Fortran code by Alan Miller 2020. leaps:Regression Subset Selection. R package version 3.1. https://CRAN.R-project.org/package=leaps   
+
+Wickham, H., 2017. Easily Install and Load the “Tidyverse”. R package version.   
+
+Wickham, H., Averick, M., Bryan, J., Chang, W., McGowan, L., François, R., Grolemund, G., Hayes, A., Henry, L., Hester, J., Kuhn, M., Pedersen, T., Miller, E., Bache, S., Müller, K., Ooms, J., Robinson, D., Seidel, D., Spinu, V., Takahashi, K., Vaughan, D., Wilke, C., Woo, K., Yutani, H., 2019. Welcome to the Tidyverse. Journal of Open Source Software 4, 1686. https://doi.org/10.21105/joss.01686   
+
+Wright, M.N., Ziegler, A., 2017. ranger: A Fast Implementation of Random Forests for High Dimensional Data in C++ and R. Journal of Statistical Software 77, 17. https://doi.org/10.18637/jss.v077.i01   
+
