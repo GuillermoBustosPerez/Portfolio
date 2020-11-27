@@ -9,7 +9,9 @@ Predicción ventas retail
     2.1) Análisis exploratorio visual  
     2.2) Serie temporal semanal  
 3)  Modelo de predicción  
-    3.1) Comprobar el *White Noise*
+    3.1) Comprobar el *White Noise*  
+    3.2) Preprocesado: train y test sets  
+    3.3) Visualización de modelos candidatos
 
 ## 1\) Introducción
 
@@ -459,7 +461,8 @@ library(forecast)
 
 ``` r
 # Autocorrelation plot
-ggAcf(retail_weeks[,1])
+ggAcf(retail_weeks[,1],
+      lag = 52)
 ```
 
 ![](Retail-Sales_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
@@ -467,7 +470,7 @@ ggAcf(retail_weeks[,1])
 ``` r
 # Ljung-Box test of white noise
 Box.test(retail_weeks[,1],
-         lag = 6,
+         lag = 52,
          fitdf = 0,
          type = "Lj")
 ```
@@ -476,19 +479,167 @@ Box.test(retail_weeks[,1],
     ##  Box-Ljung test
     ## 
     ## data:  retail_weeks[, 1]
-    ## X-squared = 60.984, df = 6, p-value = 2.839e-11
+    ## X-squared = 132.93, df = 52, p-value = 5.102e-09
 
  
 
-El autocorrelation plot muestra que seguramente no se trata de
-*white-noise*, y que hay información utilizable en los periodos
-anteriores para realizar predicciones futuras. La prueba Ljung-Box
-confirma que no se trata de *white noise*.
+El autocorrelation plot y la prueba Ljung-Box muestran que **la serie
+temporal no es white-noise**, y que hay información utilizable en los
+periodos anteriores para realizar predicciones futuras. Viendo la serie
+temporal de las ventas semanales y el autocorrelation plot resulta
+aparente que **un modelo ARIMA no va a ser adecuado para generar
+predicciones sobre esta serie temporal**.
+
+### 3.2) Preprocesado: train y test sets
+
+Vamos a transformar ahora los datos en el **train y test sets**. Lo
+ideal es queambos sean **ts**, que permite aplicar los modelos de
+predicción de series temporales de la librería **forecast**. Sin embargo
+el indexado y selección de periodos de tiempo en objetos ts puede
+resultar menos intuitiivo que en xts, por lo que es adecuado usar este
+formato como base para la tarnsformación a ts.
 
 ``` r
+# Get number of weeks per year
+nweeks(retail_weeks["2014"][,1])
+```
+
+    ## [1] 52
+
+``` r
+nweeks(retail_weeks["2015"][,1])
+```
+
+    ## [1] 52
+
+``` r
+nweeks(retail_weeks["2016"][,1])
+```
+
+    ## [1] 31
+
+``` r
+nweeks(retail_weeks[,1])
+```
+
+    ## [1] 135
+
+``` r
+# make into time series
 retail_ts <- ts(retail_weeks[,1],
-                start = 2014,
-                frequency = 52)
+                start = c(2014, 1),
+                end = c(2016, 31),
+                   frequency = 52)
+
+
+# Train set
+train_ts <- window(retail_ts, 
+               end = c(2016, 11))
+
+# Test set
+test_ts <- window(retail_ts,
+               start= c(2016, 12))
+
+# Check legth of train and test sets
+length(train_ts)
+```
+
+    ## [1] 115
+
+``` r
+length(test_ts)
+```
+
+    ## [1] 20
+
+``` r
+# Check the sum is correct
+(length(train_ts) + length(test_ts)) == length(retail_ts)
+```
+
+    ## [1] TRUE
+
+ 
+
+El paso inicial es aplicar una transformación Box-Cox para dar
+estacionariedad a la serie temporal que permita aplicar modelos ARIMA.
+
+``` r
+BC <- BoxCox.lambda(train_ts)
+BC
+```
+
+    ## [1] 0.6160325
+
+ 
+
+Sin embargo es importante señalar que la serie parece ser bastante
+estacionaria, haciendo que sea poco adecuada para modelos ARIMA.
+
+  - Duarante la mayor parte de la serie temporal no se observa una
+    tendencia, salvo en el segundo cuarto de 2016, donde parece haber
+    una tendencia ascendente.
+      - Hay picos de ventas, pero sin una estacionalidad clara  
+      - Se trata de datos semanales, lo cual implica periodos
+        estacionales sean muy largos que no son manejados dde forma
+        eficiente por la mayoría de los modelos.
+
+<!-- end list -->
+
+``` r
+ggseasonplot(retail_ts, year.labels=TRUE, year.labels.left=TRUE) +
+  ggtitle("Seasonal plot: seasonal sales") +
+  ylab("Sales") +
+  theme_grey() +
+  ggsci::scale_color_d3() + 
+  theme(axis.text.x = element_text(size = 7, color = "black")) 
+```
+
+![](Retail-Sales_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
+
+### 3.2) Visualización de modelos candidatos
+
+La fase inicial del análisis se centra en visualizar las predicciones de
+los diferentes modelos sobre el test set. Esta primera visualización nos
+permite optar por modelos para posteriormente evaluar los residuals y
+comparar las métricas. Dada la naturaleza de los datos y el análisis
+previo vamos a visualziar un modelo ARIMA, naive estacional y STLF.
+
+``` r
+#Make ARIMA predictions
+arima_forecast <- auto.arima(train_ts, lambda = BC) %>% 
+  forecast(h = 20)
+
+## Plot the three models
+autoplot(train_ts) +
+    autolayer(test_ts, color = "red") + 
+  
+# Plot auto ARIMA
+  autolayer(arima_forecast,
+                     series = "Auto ARIMA", PI = FALSE, 
+          color = "navyblue") + 
+  
+# Plot seasonal naive
+  autolayer(snaive(train_ts, h = 20, lambda = BC),
+            series = "Seasonal naïve", PI = FALSE,
+            color = "purple") +
+  
+# Plot STLF
+    autolayer(stlf(train_ts, h = 20, lambda = BC),
+            series = "stlf", PI = FALSE, 
+            color = "gold") 
+```
+
+![](Retail-Sales_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
+
+### 3.3) ANN
+
+``` r
+nnetar(train_ts, 30, 8, 8, lambda = BC) %>% 
+  forecast(h = 20) %>% 
+  autoplot() +
+  autolayer(test_ts) +
+  theme(legend.position = "bottom")
 ```
 
 ## Bibliografía
