@@ -2,7 +2,7 @@
 
 Determinar el precio de una vivienda es una tarea común que depende de diversos factores, como la localización, tamaño, antiguedad del inmueble, etc.   
 
-Este es un **ejercicio clásico de regresión** en el que se prueban diferentes modelos para determinar el precio de una vivienda.   
+Este es un **ejercicio clásico de regresión** en el que se prueban diferentes modelos para **determinar el precio de una vivienda**.   
 
 Este ejemplo se divide en los  siguientes apartados:    
 
@@ -17,8 +17,10 @@ Este ejemplo se divide en los  siguientes apartados:
 | Mult. Linear Reg. Log scale | 0.09 | 0.11 | 0.02 | 0.76 |    
 | Random Forest Regression | 0.06 | 0.08 | 0.01 | 0.88 |    
 
+Los modelos, además de determinar el precio de una vivienda, permiten **determinar qué factores estan influyendo el valor de las viviendas** (posición respecto a la latitud, tamaño habitable, año de construcción, etc.).   
 Finalmente los **valores de precios conocidos y predicción de precios son reconvertidos a la escala lineal**, junto con un **rango de estimaión de precios**.  
 
+\ 
 
 ### Regresión lineal múltiple   
 
