@@ -19,9 +19,9 @@ Predicción precio viviendas
     3.2) Random Forest con Grid search  
     3.3) Evaluación del modelo de Random Forest
 
-4)  Concluyendo  
-    4.1) Comparando los modelos  
-    4.2) Del modelo a datos útiles
+4)  Del modelo a datos útiles
+
+ 
 
 ## 1\) Introducción
 
@@ -1814,7 +1814,7 @@ get_model_formula(10, regfit_full, "price")
 
     ## price ~ bedrooms + bathrooms + sqft_living + waterfront + view + 
     ##     grade + yr_built + zipcode + lat + long
-    ## <environment: 0x0000000014d4c850>
+    ## <environment: 0x0000000014d20c10>
 
  
 
@@ -2170,7 +2170,7 @@ parte de la interpretabilidad del modelo.
 
 ``` r
 # Log of price
-price <- housing_reg %>% transmute(price = log(price))
+price <- housing_reg %>% transmute(price = log10(price))
 
 # Scale variables
 housing_reg <- scale(housing_reg[-1])
@@ -2198,25 +2198,25 @@ summary(MLR_Log)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -1.97836 -0.16437  0.00307  0.16388  1.25485 
+    ## -0.85919 -0.07138  0.00133  0.07117  0.54497 
     ## 
     ## Coefficients:
-    ##              Estimate Std. Error  t value Pr(>|t|)    
-    ## (Intercept) 13.047817   0.001764 7397.727  < 2e-16 ***
-    ## bedrooms    -0.012789   0.002252   -5.678 1.38e-08 ***
-    ## bathrooms    0.067010   0.003064   21.871  < 2e-16 ***
-    ## sqft_living  0.161470   0.003612   44.704  < 2e-16 ***
-    ## view         0.053229   0.002057   25.871  < 2e-16 ***
-    ## grade        0.214909   0.003022   71.121  < 2e-16 ***
-    ## yr_built    -0.113096   0.002395  -47.224  < 2e-16 ***
-    ## zipcode     -0.040532   0.002236  -18.131  < 2e-16 ***
-    ## long        -0.013132   0.002256   -5.820 5.96e-09 ***
-    ## lat          0.194236   0.001892  102.680  < 2e-16 ***
-    ## waterfront   0.032144   0.001929   16.661  < 2e-16 ***
+    ##               Estimate Std. Error  t value Pr(>|t|)    
+    ## (Intercept)  5.6665949  0.0007660 7397.727  < 2e-16 ***
+    ## bedrooms    -0.0055542  0.0009781   -5.678 1.38e-08 ***
+    ## bathrooms    0.0291021  0.0013306   21.871  < 2e-16 ***
+    ## sqft_living  0.0701254  0.0015686   44.704  < 2e-16 ***
+    ## view         0.0231171  0.0008935   25.871  < 2e-16 ***
+    ## grade        0.0933336  0.0013123   71.121  < 2e-16 ***
+    ## yr_built    -0.0491170  0.0010401  -47.224  < 2e-16 ***
+    ## zipcode     -0.0176029  0.0009709  -18.131  < 2e-16 ***
+    ## long        -0.0057031  0.0009799   -5.820 5.96e-09 ***
+    ## lat          0.0843557  0.0008215  102.680  < 2e-16 ***
+    ## waterfront   0.0139600  0.0008379   16.661  < 2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 0.2593 on 21602 degrees of freedom
+    ## Residual standard error: 0.1126 on 21602 degrees of freedom
     ## Multiple R-squared:  0.7577, Adjusted R-squared:  0.7576 
     ## F-statistic:  6756 on 10 and 21602 DF,  p-value: < 2.2e-16
 
@@ -2286,16 +2286,16 @@ summary(lm(.resid ~ price, MLR_Log_DF))
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -2.36402 -0.13435  0.01464  0.14739  1.22844 
+    ## -1.02668 -0.05835  0.00636  0.06401  0.53350 
     ## 
     ## Coefficients:
     ##              Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept) -3.161039   0.038059  -83.06   <2e-16 ***
+    ## (Intercept) -1.372822   0.016529  -83.06   <2e-16 ***
     ## price        0.242266   0.002915   83.12   <2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 0.2257 on 21611 degrees of freedom
+    ## Residual standard error: 0.09801 on 21611 degrees of freedom
     ## Multiple R-squared:  0.2423, Adjusted R-squared:  0.2422 
     ## F-statistic:  6910 on 1 and 21611 DF,  p-value: < 2.2e-16
 
@@ -2405,13 +2405,13 @@ Mult. Linear Reg. Log scale
 
 <td style="text-align:right;">
 
-2.007147e-01
+8.716930e-02
 
 </td>
 
 <td style="text-align:right;">
 
-2.592308e-01
+1.125825e-01
 
 </td>
 
@@ -2487,8 +2487,8 @@ RF_housing
     ## Target node size:                 5 
     ## Variable importance mode:         impurity_corrected 
     ## Splitrule:                        variance 
-    ## OOB prediction error (MSE):       0.037012 
-    ## R squared (OOB):                  0.8662578
+    ## OOB prediction error (MSE):       0.006993186 
+    ## R squared (OOB):                  0.8660223
 
 ``` r
 # make predictions over test set
@@ -2504,7 +2504,7 @@ r <- cor(predictions, test$price)
 r*r
 ```
 
-    ## [1] 0.8769753
+    ## [1] 0.8770484
 
  
 
@@ -2888,7 +2888,7 @@ RF_housing <- ranger(frmla,
                 num.trees = best_tune$Num_Trees,
                 mtry = best_tune$mtry,
                 min.node.size = best_tune$min_node.size,
-                importance = "impurity_corrected",
+                importance = "impurity_corrected"
                 )
 RF_housing
 ```
@@ -2896,7 +2896,7 @@ RF_housing
     ## Ranger result
     ## 
     ## Call:
-    ##  ranger(frmla, housing_reg, num.trees = best_tune$Num_Trees, mtry = best_tune$mtry,      min.node.size = best_tune$min_node.size, importance = "impurity_corrected",      ) 
+    ##  ranger(frmla, housing_reg, num.trees = best_tune$Num_Trees, mtry = best_tune$mtry,      min.node.size = best_tune$min_node.size, importance = "impurity_corrected") 
     ## 
     ## Type:                             Regression 
     ## Number of trees:                  650 
@@ -2906,8 +2906,8 @@ RF_housing
     ## Target node size:                 10 
     ## Variable importance mode:         impurity_corrected 
     ## Splitrule:                        variance 
-    ## OOB prediction error (MSE):       0.03318426 
-    ## R squared (OOB):                  0.8803725
+    ## OOB prediction error (MSE):       0.006259291 
+    ## R squared (OOB):                  0.8803658
 
  
 
@@ -3015,13 +3015,13 @@ Mult. Linear Reg. Log scale
 
 <td style="text-align:right;">
 
-2.007147e-01
+8.716930e-02
 
 </td>
 
 <td style="text-align:right;">
 
-2.592308e-01
+1.125825e-01
 
 </td>
 
@@ -3049,25 +3049,25 @@ Random Forest Reg.
 
 <td style="text-align:right;">
 
-1.306765e-01
+5.673680e-02
 
 </td>
 
 <td style="text-align:right;">
 
-1.821655e-01
+7.911570e-02
 
 </td>
 
 <td style="text-align:right;">
 
-0.0100358
+0.0100327
 
 </td>
 
 <td style="text-align:right;">
 
-0.8803725
+0.8803658
 
 </td>
 
@@ -3134,18 +3134,18 @@ summary(lm(residuals ~ price, RF_DF))
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -1.16257 -0.09307  0.00036  0.09344  1.08137 
+    ## -0.49516 -0.04032  0.00009  0.04064  0.46737 
     ## 
     ## Coefficients:
     ##              Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept) -1.946337   0.027710  -70.24   <2e-16 ***
-    ## price        0.149343   0.002122   70.38   <2e-16 ***
+    ## (Intercept) -0.847395   0.012028  -70.45   <2e-16 ***
+    ## price        0.149722   0.002121   70.60   <2e-16 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 0.1643 on 21611 degrees of freedom
-    ## Multiple R-squared:  0.1865, Adjusted R-squared:  0.1864 
-    ## F-statistic:  4953 on 1 and 21611 DF,  p-value: < 2.2e-16
+    ## Residual standard error: 0.07132 on 21611 degrees of freedom
+    ## Multiple R-squared:  0.1874, Adjusted R-squared:  0.1874 
+    ## F-statistic:  4984 on 1 and 21611 DF,  p-value: < 2.2e-16
 
  
 
@@ -3195,6 +3195,433 @@ Forest coinciden en buena medida con las del *best sub-set selection* de
 la regresión lineal múltiple, teniendo gran peso la posición con
 respecto a la latitud de la vivienda, los metros cuadrados habitables, y
 el la evaluación (*grade*).
+
+## 4\) Del modelo a datos útiles
+
+Por último, vamos a volver a transformar los valores de la escala
+logarítmica a la escala real. A su vez vamos a generar unos intervalos
+de error (también a escala lineal) para determinar un rango de precio en
+el que sirva de guía. Este intervalo será dos veces la desviación
+estandar, con lo que abarcará cerca del 95% de los casos. A su vez
+generamos el diagrama de dispersión del precio predecido y el precio
+real.
+
+``` r
+# Get 2 sigma confidance
+Linear_pred <- RF_DF %>% mutate(
+  Lower_SD = Predicted - (2*sd(RF_DF$residuals)),
+  Upper_SD = Predicted + (2*sd(RF_DF$residuals))) %>% 
+  transmute(
+    Price = (10^price),
+    Predicted = (10^Predicted),
+    Lower_Bound = (10^Lower_SD),
+    Upper_Bound = (10^Upper_SD)
+  ) %>% 
+  
+  mutate(Falls = (Lower_Bound <= Price & Price <= Upper_Bound))
+
+# Percentage of cases included in the interval
+(sum(Linear_pred$Falls)/nrow(Linear_pred))*100
+```
+
+    ## [1] 94.13779
+
+``` r
+# regression at linear scale
+Linear_pred %>% ggplot(aes(Predicted, Price)) + 
+  geom_point() +
+  geom_line(aes(y = Predicted), size = 1, col = "blue") +
+  coord_fixed() +
+  theme_light()
+```
+
+![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-41-1.png)<!-- -->
+
+<table>
+
+<thead>
+
+<tr>
+
+<th style="text-align:right;">
+
+Price
+
+</th>
+
+<th style="text-align:right;">
+
+Predicted
+
+</th>
+
+<th style="text-align:right;">
+
+Lower\_Bound
+
+</th>
+
+<th style="text-align:right;">
+
+Upper\_Bound
+
+</th>
+
+<th style="text-align:left;">
+
+Falls
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:right;">
+
+600000
+
+</td>
+
+<td style="text-align:right;">
+
+540864.4
+
+</td>
+
+<td style="text-align:right;">
+
+375722.0
+
+</td>
+
+<td style="text-align:right;">
+
+778592.6
+
+</td>
+
+<td style="text-align:left;">
+
+TRUE
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+606000
+
+</td>
+
+<td style="text-align:right;">
+
+523662.9
+
+</td>
+
+<td style="text-align:right;">
+
+363772.6
+
+</td>
+
+<td style="text-align:right;">
+
+753830.3
+
+</td>
+
+<td style="text-align:left;">
+
+TRUE
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+660000
+
+</td>
+
+<td style="text-align:right;">
+
+757618.0
+
+</td>
+
+<td style="text-align:right;">
+
+526294.0
+
+</td>
+
+<td style="text-align:right;">
+
+1090616.6
+
+</td>
+
+<td style="text-align:left;">
+
+TRUE
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+537000
+
+</td>
+
+<td style="text-align:right;">
+
+505109.6
+
+</td>
+
+<td style="text-align:right;">
+
+350884.2
+
+</td>
+
+<td style="text-align:right;">
+
+727122.3
+
+</td>
+
+<td style="text-align:left;">
+
+TRUE
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+975000
+
+</td>
+
+<td style="text-align:right;">
+
+1045387.1
+
+</td>
+
+<td style="text-align:right;">
+
+726198.4
+
+</td>
+
+<td style="text-align:right;">
+
+1504870.0
+
+</td>
+
+<td style="text-align:left;">
+
+TRUE
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+200000
+
+</td>
+
+<td style="text-align:right;">
+
+203841.4
+
+</td>
+
+<td style="text-align:right;">
+
+141602.4
+
+</td>
+
+<td style="text-align:right;">
+
+293436.6
+
+</td>
+
+<td style="text-align:left;">
+
+TRUE
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+370000
+
+</td>
+
+<td style="text-align:right;">
+
+357294.4
+
+</td>
+
+<td style="text-align:right;">
+
+248201.5
+
+</td>
+
+<td style="text-align:right;">
+
+514337.3
+
+</td>
+
+<td style="text-align:left;">
+
+TRUE
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+210750
+
+</td>
+
+<td style="text-align:right;">
+
+319784.1
+
+</td>
+
+<td style="text-align:right;">
+
+222144.2
+
+</td>
+
+<td style="text-align:right;">
+
+460339.9
+
+</td>
+
+<td style="text-align:left;">
+
+FALSE
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+299900
+
+</td>
+
+<td style="text-align:right;">
+
+275085.8
+
+</td>
+
+<td style="text-align:right;">
+
+191093.7
+
+</td>
+
+<td style="text-align:right;">
+
+395995.3
+
+</td>
+
+<td style="text-align:left;">
+
+TRUE
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+209950
+
+</td>
+
+<td style="text-align:right;">
+
+318119.8
+
+</td>
+
+<td style="text-align:right;">
+
+220988.1
+
+</td>
+
+<td style="text-align:right;">
+
+457944.1
+
+</td>
+
+<td style="text-align:left;">
+
+FALSE
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
 
 ## Bibliografía
 
