@@ -12,7 +12,8 @@ Predicción ventas retail
     3.1) Comprobar el *White Noise*  
     3.2) Preprocesado: train y test sets  
     3.3) Visualización y precisión de modelos candidatos  
-4)  Predicciones finales
+4)  White noise y residuals de los modelos  
+5)  Predicciones finales
 
 ## 1\) Introducción
 
@@ -313,10 +314,10 @@ retail %>% filter(price > 0) %>%
 
 ![](Retail-Sales_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->  
 
-El modelo de regresión lineal muestra una relación ligeramnete
-significaatiiva entre ventas y el precio (notese que esta relación
-desaparece a escala logarítmica y excluyendo casos en los que las ventas
-y el precio son igual cero).
+El modelo de regresión lineal muestra una relación ligeramente
+significativa entre ventas y el precio (esta relación desaparece a
+escala logarítmica y al excluir los casos en los que las ventas y el
+precio son igual cero).
 
 ``` r
 # Lineal model of sales as a function of price
@@ -424,13 +425,13 @@ retail %>%
 ### 2.2) Serie temporal semanal
 
 En el enunciado se señala la importancia de que las predicciones sean
-semanales, con la capacidad de crear predicciones para intervales de 2/3
+semanales, con la capacidad de crear predicciones para intervalos de 2/3
 semanas. Para ello es necesario transformar la serie temporal generando
 la suma de ventas para cada semana.
 
 ``` r
 # Make into xts objetc
-retail_xts <- as.xts(retail [ , -c(1,5,6)], order.by = retail$date)
+retail_xts <- as.xts(retail[ , -c(1,5,6)], order.by = retail$date)
 ```
 
 ``` r
@@ -453,7 +454,7 @@ comprobar si se trata de *white noise*. En este caso resulta fundamental
 emplear la librería **forecast** (Hyndman and Khandakar, 2008) y seguir
 los principios de análisis de series temporales expuestos en Hyndman y
 Athanasopoulos (2019). Para ello resulta esencial ver el
-**autocorrelation plot** y hacer la prrueba Ljung-Box (Ljung and Box,
+**autocorrelation plot** y hacer la prueba Ljung-Box (Ljung and Box,
 1978)
 
 ``` r
@@ -494,11 +495,11 @@ predicciones sobre esta serie temporal**.
 ### 3.2) Preprocesado: train y test sets
 
 Vamos a transformar ahora los datos en el **train y test sets**. Lo
-ideal es queambos sean **ts**, que permite aplicar los modelos de
+ideal es que ambos sean **ts**, que permite aplicar los modelos de
 predicción de series temporales de la librería **forecast**. Sin embargo
 el indexado y selección de periodos de tiempo en objetos ts puede
-resultar menos intuitiivo que en xts, por lo que es adecuado usar este
-formato como base para la tarnsformación a ts.
+resultar menos intuitivo que en xts, por lo que es adecuado usar este
+formato como base para la transformación a ts.
 
 ``` r
 # Get number of weeks per year
@@ -532,7 +533,6 @@ retail_ts <- ts(retail_weeks[,1],
                 end = c(2016, 31),
                    frequency = 52)
 
-
 # Train set
 train_ts <- window(retail_ts, 
                end = c(2016, 11))
@@ -562,10 +562,11 @@ length(test_ts)
 
  
 
-El paso inicial es aplicar una transformación Box-Cox para dar
-estacionariedad a la serie temporal que permita aplicar modelos ARIMA.
+El paso inicial es aplicar una transformación Box-Cox para hace
+estacionaria la serie temporal y que permita aplicar modelos ARIMA.
 
 ``` r
+# Box-Cox  transformation
 BC <- BoxCox.lambda(train_ts)
 BC
 ```
@@ -577,7 +578,7 @@ BC
 Sin embargo es importante señalar que la serie parece ser bastante
 estacionaria, haciendo que sea poco adecuada para modelos ARIMA.
 
-  - Duarante la mayor parte de la serie temporal no se observa una
+  - Durante la mayor parte de la serie temporal no se observa una
     tendencia, salvo en el segundo cuarto de 2016, donde parece haber
     una tendencia ascendente.  
   - Hay picos de ventas, pero sin una estacionalidad clara  
@@ -604,7 +605,7 @@ La fase inicial del análisis se centra en visualizar las predicciones de
 los diferentes modelos sobre el test set. Esta primera visualización nos
 permite optar por modelos para posteriormente evaluar los residuals y
 comparar las métricas. Dada la naturaleza de los datos y el análisis
-previo vamos a visualziar un modelo ARIMA, naive estacional y STLF.
+previo vamos a visualizar un modelo ARIMA, naive estacional y STLF.
 
 ``` r
 #Make ARIMA predictions
@@ -936,46 +937,416 @@ ARIMA
 
 Empleando una ANN con 8 nodos en el *hidden layer*, los 25 últimos
 periodos de tiempo como imputs y los datos observados en la misma semana
-del año anterior. En este caso incremenamos el hiperparámetro de *decay*
-para optener un incremento en los intervalos de confianza de las
-predicciones.
+del año anterior. En este caso auentamos el hiperparámetro de *decay*
+para obtener un incremento en los intervalos de confianza de las
+predicciones. El número de nodos en el *hidden layer* (*size*) puede ser
+determinado por medio de un loop que extraiga los datos de precisión
+sobre el test set para cada uno de los modelos con diferentes números de
+nodos en el hidden layer.
 
 ``` r
-ANN_forecasts <- nnetar(train_ts, p = 25, P = 1, size = 12, 
+# Store accuracy of each model
+ANNacc <- data.frame(matrix(ncol = 8, nrow = 0))
+
+# Loop over each size of the hiden layer
+for (x in seq(1, 30, 1)){
+  ANN_forecasts <- nnetar(train_ts, p = 25, P = 1, size = x, 
                         lambda = BC, decay = 0.9) %>% 
   forecast(PI = TRUE, h = 20)
 
+  ANNacc <- rbind(ANNacc, accuracy(ANN_forecasts, test_ts)[2, 1:8])
+  colnames(ANNacc) <- colnames(accuracy(ANN_forecasts, test_ts))
+}
+```
 
+``` r
+# Get number of nodes with lowest RMSE
+N_nodes <- which.min(ANNacc$RMSE)
+N_nodes
+```
 
+    ## [1] 19
+
+ 
+
+Como resultado obtenemos que la ANN más adecuada es empleando los 25
+retardos anteriores, el valor de la misma semana del año anterior, y 19
+nodos en el hidden layer. Ahora podemos representar las predicciones y
+agregar las métricas de precisión a las de los modelos previos.
+
+``` r
+# Forecast with ANN
+ANN_forecasts <- nnetar(train_ts, p = 25, P = 1, size = N_nodes, 
+                        lambda = BC, decay = 0.9) %>% 
+  forecast(PI = TRUE, h = 20)
+
+# Plot forecasts and test set
 autoplot(ANN_forecasts) +
   autolayer(test_ts) +
   theme(legend.position = "none")
 ```
 
-![](Retail-Sales_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
+![](Retail-Sales_files/figure-gfm/unnamed-chunk-28-1.png)<!-- -->
 
 ``` r
-accuracy(ANN_forecasts, test_ts)
+# Add precision metrics of ANN to rsto of models
+Models  <- c("ANN")
+Accuracy <- rbind(Accuracy, as.vector(c(Models, as.vector((accuracy(ANN_forecasts, test_ts)[2, 1:8])))))
 ```
 
-    ##                     ME     RMSE      MAE      MPE     MAPE     MASE      ACF1
-    ## Training set  21.86373 138.5427 104.3381     -Inf      Inf 0.268112 0.1661261
-    ## Test set     226.77902 534.2249 440.0146 7.571435 46.16832 1.130682 0.4810259
-    ##              Theil's U
-    ## Training set        NA
-    ## Test set      1.238946
+<table>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+Models
+
+</th>
+
+<th style="text-align:right;">
+
+ME
+
+</th>
+
+<th style="text-align:right;">
+
+RMSE
+
+</th>
+
+<th style="text-align:right;">
+
+MAE
+
+</th>
+
+<th style="text-align:right;">
+
+MPE
+
+</th>
+
+<th style="text-align:right;">
+
+MAPE
+
+</th>
+
+<th style="text-align:right;">
+
+MASE
+
+</th>
+
+<th style="text-align:right;">
+
+Theil’s U
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+STLF
+
+</td>
+
+<td style="text-align:right;">
+
+528.40
+
+</td>
+
+<td style="text-align:right;">
+
+727.42
+
+</td>
+
+<td style="text-align:right;">
+
+597.23
+
+</td>
+
+<td style="text-align:right;">
+
+39.04
+
+</td>
+
+<td style="text-align:right;">
+
+53.27
+
+</td>
+
+<td style="text-align:right;">
+
+1.53
+
+</td>
+
+<td style="text-align:right;">
+
+1.36
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+S-naive
+
+</td>
+
+<td style="text-align:right;">
+
+511.15
+
+</td>
+
+<td style="text-align:right;">
+
+738.13
+
+</td>
+
+<td style="text-align:right;">
+
+601.45
+
+</td>
+
+<td style="text-align:right;">
+
+40.06
+
+</td>
+
+<td style="text-align:right;">
+
+54.80
+
+</td>
+
+<td style="text-align:right;">
+
+1.55
+
+</td>
+
+<td style="text-align:right;">
+
+1.51
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+ARIMA
+
+</td>
+
+<td style="text-align:right;">
+
+576.30
+
+</td>
+
+<td style="text-align:right;">
+
+718.31
+
+</td>
+
+<td style="text-align:right;">
+
+589.98
+
+</td>
+
+<td style="text-align:right;">
+
+45.16
+
+</td>
+
+<td style="text-align:right;">
+
+49.04
+
+</td>
+
+<td style="text-align:right;">
+
+1.52
+
+</td>
+
+<td style="text-align:right;">
+
+1.31
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+ANN
+
+</td>
+
+<td style="text-align:right;">
+
+230.98
+
+</td>
+
+<td style="text-align:right;">
+
+536.55
+
+</td>
+
+<td style="text-align:right;">
+
+442.49
+
+</td>
+
+<td style="text-align:right;">
+
+7.96
+
+</td>
+
+<td style="text-align:right;">
+
+46.41
+
+</td>
+
+<td style="text-align:right;">
+
+1.14
+
+</td>
+
+<td style="text-align:right;">
+
+1.24
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
 
  
 
-## 4\) Predicciones finales
+**El modelo ANN es el que presenta los mejores valores correspondientes
+a las métricas de precisión**, siendo la MAPE la única que se aproxima a
+la del resto de modelos. La visualización de las predicciones también
+resulta bastante correctas, aunque algunos de los valores del test set
+caen fuera de los intervalos de confianza del modelo.
 
-Podemos optar por dos modelos finales. Por un lado el modelo STLF ya que
-presenta valores equilibrados en las métricas de precisión, y las
-predicciones procedentes de la ANN, que muestra los mejores valores en
-las métricas de precisión. Hacemos una predicción semanal hasta la
-primera semana de 2017 (h = 22).
+## 4 White noise y residuals de los modelos
+
+Vamos a comprobar los residuals de ambos modelos candidatos (la ANN y el
+STLF). Comprobar los residuals es importante para determinar si el
+modelo ha capturado adecuadamente la información en los datos.
 
 ``` r
+# Check residuals of STLF model
+checkresiduals(stlf(train_ts, 
+                    lambda = BC))
+```
+
+    ## Warning in checkresiduals(stlf(train_ts, lambda = BC)): The fitted degrees of
+    ## freedom is based on the model used for the seasonally adjusted data.
+
+![](Retail-Sales_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
+
+    ## 
+    ##  Ljung-Box test
+    ## 
+    ## data:  Residuals from STL +  ETS(A,N,N)
+    ## Q* = 33.491, df = 21, p-value = 0.04105
+    ## 
+    ## Model df: 2.   Total lags used: 23
+
+``` r
+# Check residuals of ANN model
+nnt_model <- nnetar(train_ts, p = 25, P = 1, size = N_nodes, 
+                        lambda = BC, residuals = TRUE)
+
+
+checkresiduals(nnt_model$residuals, na.omit = TRUE)
+```
+
+    ## Warning in modeldf.default(object): Could not find appropriate degrees of
+    ## freedom for this model.
+
+![](Retail-Sales_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->
+
+``` r
+Box.test(nnt_model$residuals, 
+         lag = 20, type = "Lj")
+```
+
+    ## 
+    ##  Box-Ljung test
+    ## 
+    ## data:  nnt_model$residuals
+    ## X-squared = 19.238, df = 20, p-value = 0.5064
+
+ 
+
+En este caso los modelos del modelo STLF están en el límite del
+White-noise, mientras que los residuals de la ANN supera este límite
+sobradamente (la red neuronal es bastante tendente a hacer overfit de
+los datos, pero en este caso el test set nos permite tener confianza en
+las predicciones).
+
+## 5\) Predicciones finales
+
+Por último, vamos a **generar y visualizar las predicciones finales de
+ventas al pormenor hasta la primera semana de 2017 (h = 22)**. Podemos
+**optar por dos modelos finales**. Por un lado el modelo STLF ya que
+presenta valores equilibrados en las métricas de precisión, y las
+predicciones procedentes de la ANN, que muestra los mejores valores en
+las métricas de precisión.
+
+### 5.1) Predicciones del modelo STLF
+
+Primero las predicciones del modelo STLF.
+
+``` r
+# New Box Cox transformation of complete time series
 new_BC <- BoxCox.lambda(retail_ts)
 
 # Final forecast using STLF
@@ -984,7 +1355,7 @@ final_forecast <- stlf(retail_ts, h = 22, lambda = new_BC)
 autoplot(final_forecast)
 ```
 
-![](Retail-Sales_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
+![](Retail-Sales_files/figure-gfm/unnamed-chunk-33-1.png)<!-- -->
 
 <table>
 
@@ -1916,6 +2287,10 @@ Hi 95
 
 </table>
 
+### 5.2) Predicciones de la ANN
+
+Por último las predicciones de la red neuronal.
+
 ``` r
 # Final forecast using ANN
 final_forecast <-  nnetar(retail_ts, p = 25, P = 1, size = 12, 
@@ -1925,7 +2300,7 @@ final_forecast <-  nnetar(retail_ts, p = 25, P = 1, size = 12,
 autoplot(final_forecast)
 ```
 
-![](Retail-Sales_files/figure-gfm/unnamed-chunk-28-1.png)<!-- -->
+![](Retail-Sales_files/figure-gfm/unnamed-chunk-35-1.png)<!-- -->
 
 <table>
 
@@ -1983,31 +2358,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-806.7986
+832.8680
 
 </td>
 
 <td style="text-align:right;">
 
-558.7738
+608.9268
 
 </td>
 
 <td style="text-align:right;">
 
-1065.8451
+1085.3430
 
 </td>
 
 <td style="text-align:right;">
 
-464.8410
+501.2245
 
 </td>
 
 <td style="text-align:right;">
 
-1210.1334
+1226.8299
 
 </td>
 
@@ -2023,31 +2398,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-556.8996
+595.2029
 
 </td>
 
 <td style="text-align:right;">
 
-348.3859
+369.6344
 
 </td>
 
 <td style="text-align:right;">
 
-785.2831
+852.6723
 
 </td>
 
 <td style="text-align:right;">
 
-254.3701
+298.0499
 
 </td>
 
 <td style="text-align:right;">
 
-916.9358
+997.0222
 
 </td>
 
@@ -2063,31 +2438,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-850.2842
+880.2048
 
 </td>
 
 <td style="text-align:right;">
 
-577.4931
+599.8477
 
 </td>
 
 <td style="text-align:right;">
 
-1125.0753
+1162.7330
 
 </td>
 
 <td style="text-align:right;">
 
-466.3530
+466.0738
 
 </td>
 
 <td style="text-align:right;">
 
-1243.6036
+1336.9606
 
 </td>
 
@@ -2103,31 +2478,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-952.0997
+968.4050
 
 </td>
 
 <td style="text-align:right;">
 
-690.0166
+686.8561
 
 </td>
 
 <td style="text-align:right;">
 
-1222.2624
+1265.5322
 
 </td>
 
 <td style="text-align:right;">
 
-547.4676
+536.8046
 
 </td>
 
 <td style="text-align:right;">
 
-1392.1135
+1438.2926
 
 </td>
 
@@ -2143,31 +2518,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-901.7683
+863.6870
 
 </td>
 
 <td style="text-align:right;">
 
-648.4095
+580.1052
 
 </td>
 
 <td style="text-align:right;">
 
-1168.8499
+1152.5493
 
 </td>
 
 <td style="text-align:right;">
 
-538.2191
+473.7050
 
 </td>
 
 <td style="text-align:right;">
 
-1362.8042
+1309.6635
 
 </td>
 
@@ -2183,31 +2558,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-1136.0660
+1113.7260
 
 </td>
 
 <td style="text-align:right;">
 
-836.8552
+787.3353
 
 </td>
 
 <td style="text-align:right;">
 
-1459.3983
+1443.7542
 
 </td>
 
 <td style="text-align:right;">
 
-685.5304
+653.9286
 
 </td>
 
 <td style="text-align:right;">
 
-1650.9225
+1658.3223
 
 </td>
 
@@ -2223,31 +2598,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-894.2792
+891.5689
 
 </td>
 
 <td style="text-align:right;">
 
-629.6606
+578.4154
 
 </td>
 
 <td style="text-align:right;">
 
-1158.1276
+1165.5409
 
 </td>
 
 <td style="text-align:right;">
 
-495.5098
+446.1104
 
 </td>
 
 <td style="text-align:right;">
 
-1334.7598
+1311.9799
 
 </td>
 
@@ -2263,31 +2638,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-1036.2949
+1101.2556
 
 </td>
 
 <td style="text-align:right;">
 
-749.9622
+787.5656
 
 </td>
 
 <td style="text-align:right;">
 
-1312.3906
+1376.1892
 
 </td>
 
 <td style="text-align:right;">
 
-631.3059
+623.8312
 
 </td>
 
 <td style="text-align:right;">
 
-1514.8875
+1591.8873
 
 </td>
 
@@ -2303,31 +2678,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-1108.4998
+1166.0925
 
 </td>
 
 <td style="text-align:right;">
 
-821.6257
+831.1736
 
 </td>
 
 <td style="text-align:right;">
 
-1423.4045
+1492.6284
 
 </td>
 
 <td style="text-align:right;">
 
-685.7290
+713.0581
 
 </td>
 
 <td style="text-align:right;">
 
-1640.4615
+1664.4321
 
 </td>
 
@@ -2343,31 +2718,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-1034.6873
+1023.2128
 
 </td>
 
 <td style="text-align:right;">
 
-773.8992
+736.7726
 
 </td>
 
 <td style="text-align:right;">
 
-1342.7373
+1373.5344
 
 </td>
 
 <td style="text-align:right;">
 
-627.3342
+597.9822
 
 </td>
 
 <td style="text-align:right;">
 
-1538.4046
+1542.8561
 
 </td>
 
@@ -2383,31 +2758,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-1175.6466
+1111.0944
 
 </td>
 
 <td style="text-align:right;">
 
-874.9240
+805.4279
 
 </td>
 
 <td style="text-align:right;">
 
-1511.3413
+1501.2268
 
 </td>
 
 <td style="text-align:right;">
 
-725.9806
+629.1323
 
 </td>
 
 <td style="text-align:right;">
 
-1652.3637
+1679.2981
 
 </td>
 
@@ -2423,31 +2798,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-1050.3305
+973.3165
 
 </td>
 
 <td style="text-align:right;">
 
-783.7763
+715.6787
 
 </td>
 
 <td style="text-align:right;">
 
-1379.6089
+1337.3360
 
 </td>
 
 <td style="text-align:right;">
 
-635.1583
+580.7884
 
 </td>
 
 <td style="text-align:right;">
 
-1529.6948
+1519.5978
 
 </td>
 
@@ -2463,31 +2838,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-1383.3447
+1299.5783
 
 </td>
 
 <td style="text-align:right;">
 
-1078.5271
+992.0349
 
 </td>
 
 <td style="text-align:right;">
 
-1709.6232
+1707.2092
 
 </td>
 
 <td style="text-align:right;">
 
-916.3351
+841.2187
 
 </td>
 
 <td style="text-align:right;">
 
-1958.6312
+1900.5430
 
 </td>
 
@@ -2503,31 +2878,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-1045.3212
+1040.2711
 
 </td>
 
 <td style="text-align:right;">
 
-759.6644
+755.3548
 
 </td>
 
 <td style="text-align:right;">
 
-1336.9065
+1391.2544
 
 </td>
 
 <td style="text-align:right;">
 
-634.0792
+587.9192
 
 </td>
 
 <td style="text-align:right;">
 
-1506.3281
+1557.3718
 
 </td>
 
@@ -2543,31 +2918,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-1075.5553
+1070.9084
 
 </td>
 
 <td style="text-align:right;">
 
-780.1022
+751.4971
 
 </td>
 
 <td style="text-align:right;">
 
-1381.2414
+1418.3972
 
 </td>
 
 <td style="text-align:right;">
 
-646.5060
+607.3167
 
 </td>
 
 <td style="text-align:right;">
 
-1557.6861
+1608.2919
 
 </td>
 
@@ -2583,31 +2958,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-1359.2906
+1426.4938
 
 </td>
 
 <td style="text-align:right;">
 
-1047.1352
+1031.6293
 
 </td>
 
 <td style="text-align:right;">
 
-1692.6176
+1790.0439
 
 </td>
 
 <td style="text-align:right;">
 
-904.5881
+856.6164
 
 </td>
 
 <td style="text-align:right;">
 
-1918.9045
+1991.3915
 
 </td>
 
@@ -2623,31 +2998,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-1332.2719
+1369.0497
 
 </td>
 
 <td style="text-align:right;">
 
-1006.4573
+969.3545
 
 </td>
 
 <td style="text-align:right;">
 
-1685.1206
+1719.5731
 
 </td>
 
 <td style="text-align:right;">
 
-871.2713
+799.9593
 
 </td>
 
 <td style="text-align:right;">
 
-1847.1331
+1944.3780
 
 </td>
 
@@ -2663,31 +3038,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-1456.0301
+1539.7602
 
 </td>
 
 <td style="text-align:right;">
 
-1108.9674
+1104.8220
 
 </td>
 
 <td style="text-align:right;">
 
-1817.1342
+1911.8284
 
 </td>
 
 <td style="text-align:right;">
 
-945.8088
+895.3195
 
 </td>
 
 <td style="text-align:right;">
 
-2068.6951
+2079.1794
 
 </td>
 
@@ -2703,31 +3078,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-1179.4721
+1240.2161
 
 </td>
 
 <td style="text-align:right;">
 
-861.9838
+875.9283
 
 </td>
 
 <td style="text-align:right;">
 
-1498.0089
+1543.9624
 
 </td>
 
 <td style="text-align:right;">
 
-727.8305
+710.4704
 
 </td>
 
 <td style="text-align:right;">
 
-1666.2616
+1722.8388
 
 </td>
 
@@ -2743,31 +3118,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-1306.4934
+1388.4401
 
 </td>
 
 <td style="text-align:right;">
 
-1007.3465
+1025.4870
 
 </td>
 
 <td style="text-align:right;">
 
-1627.5277
+1717.9478
 
 </td>
 
 <td style="text-align:right;">
 
-843.0407
+888.5335
 
 </td>
 
 <td style="text-align:right;">
 
-1805.3694
+1932.2097
 
 </td>
 
@@ -2783,31 +3158,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-1384.6840
+1448.3184
 
 </td>
 
 <td style="text-align:right;">
 
-1050.5374
+1104.5526
 
 </td>
 
 <td style="text-align:right;">
 
-1730.7888
+1820.8086
 
 </td>
 
 <td style="text-align:right;">
 
-930.0929
+910.0544
 
 </td>
 
 <td style="text-align:right;">
 
-1911.8129
+2010.1801
 
 </td>
 
@@ -2823,31 +3198,31 @@ Hi 95
 
 <td style="text-align:right;">
 
-1089.4393
+1120.4473
 
 </td>
 
 <td style="text-align:right;">
 
-807.4420
+807.0911
 
 </td>
 
 <td style="text-align:right;">
 
-1374.4389
+1451.0655
 
 </td>
 
 <td style="text-align:right;">
 
-669.3809
+677.1420
 
 </td>
 
 <td style="text-align:right;">
 
-1542.4156
+1661.7340
 
 </td>
 
