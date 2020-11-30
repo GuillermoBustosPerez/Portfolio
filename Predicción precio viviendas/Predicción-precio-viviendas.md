@@ -1814,7 +1814,7 @@ get_model_formula(10, regfit_full, "price")
 
     ## price ~ bedrooms + bathrooms + sqft_living + waterfront + view + 
     ##     grade + yr_built + zipcode + lat + long
-    ## <environment: 0x0000000015523f58>
+    ## <environment: 0x0000000014d4c850>
 
  
 
@@ -1961,9 +1961,9 @@ MLR_DF <- broom::augment(MLR_Model)
 # Model evaluation Metrics 
 Models <- data.frame(
   "Model" = "Multiple Linear Regression",
-  "MAE" = Metrics::mae(MLR_DF$price, MLR_DF$.resid),
-  "RMSE" = Metrics::rmse(MLR_DF$price, MLR_DF$.resid),
-  "MAPE"= Metrics::mape(MLR_DF$price, MLR_DF$.resid),
+  "MAE" = Metrics::mae(MLR_DF$price, MLR_DF$.fitted),
+  "RMSE" = Metrics::rmse(MLR_DF$price, MLR_DF$.fitted),
+  "MAPE"= Metrics::mape(MLR_DF$price, MLR_DF$.fitted),
   "Correlation" = summary(MLR_Model)[[9]])
 ```
 
@@ -2019,19 +2019,19 @@ Multiple Linear Regression
 
 <td style="text-align:right;">
 
-540801.3
+126982.2
 
 </td>
 
 <td style="text-align:right;">
 
-620890.5
+202401.4
 
 </td>
 
 <td style="text-align:right;">
 
-1.045962
+0.2586555
 
 </td>
 
@@ -2311,9 +2311,9 @@ hay que tener como referencia la adjusted r-squared.
 # Model evaluation Metrics 
 temp <- data.frame(
   "Model" = "Mult. Linear Reg. Log scale",
-  "MAE" = Metrics::mae(MLR_Log_DF$price, MLR_Log_DF$.resid),
-  "RMSE" = Metrics::rmse(MLR_Log_DF$price, MLR_Log_DF$.resid),
-  "MAPE"= Metrics::mape(MLR_Log_DF$price, MLR_Log_DF$.resid),
+  "MAE" = Metrics::mae(MLR_Log_DF$price, MLR_Log_DF$.fitted),
+  "RMSE" = Metrics::rmse(MLR_Log_DF$price, MLR_Log_DF$.fitted),
+  "MAPE"= Metrics::mape(MLR_Log_DF$price, MLR_Log_DF$.fitted),
   "Correlation" = summary(MLR_Log)[[9]])
 
 Models <- rbind(Models, temp)
@@ -2371,19 +2371,19 @@ Multiple Linear Regression
 
 <td style="text-align:right;">
 
-540801.31087
+1.269822e+05
 
 </td>
 
 <td style="text-align:right;">
 
-620890.51404
+2.024014e+05
 
 </td>
 
 <td style="text-align:right;">
 
-1.045962
+0.2586555
 
 </td>
 
@@ -2405,19 +2405,19 @@ Mult. Linear Reg. Log scale
 
 <td style="text-align:right;">
 
-13.04782
+2.007147e-01
 
 </td>
 
 <td style="text-align:right;">
 
-13.05587
+2.592308e-01
 
 </td>
 
 <td style="text-align:right;">
 
-1.000398
+0.0153774
 
 </td>
 
@@ -2454,7 +2454,7 @@ reservamos un test set para comparar la *OOB r-squared*. En este caso
 **el test set va estar copuesto por el 25% de los datos**
 
 ``` r
-# Randomly reoirder dataset
+# Randomly reorder dataset
 set.seed(1234)
 housing_reg <- housing_reg[sample(nrow(housing_reg)),]
 
@@ -2515,6 +2515,8 @@ sobreajuste de los resultados, podemos emplearla como métrica de
 referncia para los siguientes modelos, y podemos emplear el datsaet
 completo.
 
+### Random Forest con Grid search
+
 Vamos a probar a hacer un grid search de los hiperparámetros, para ver
 si mejora el modelo, aunque el resultado es bastante bueno. En este caso
 vamos a mantner constante la varianza como regla de separación, pero
@@ -2572,6 +2574,627 @@ for (x in my_seq){
   
 }
 ```
+
+<table>
+
+<thead>
+
+<tr>
+
+<th style="text-align:right;">
+
+mtry
+
+</th>
+
+<th style="text-align:right;">
+
+min\_node.size
+
+</th>
+
+<th style="text-align:right;">
+
+Num\_Trees
+
+</th>
+
+<th style="text-align:right;">
+
+r\_squared
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:right;">
+
+5
+
+</td>
+
+<td style="text-align:right;">
+
+9
+
+</td>
+
+<td style="text-align:right;">
+
+500
+
+</td>
+
+<td style="text-align:right;">
+
+0.8873000
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+4
+
+</td>
+
+<td style="text-align:right;">
+
+8
+
+</td>
+
+<td style="text-align:right;">
+
+525
+
+</td>
+
+<td style="text-align:right;">
+
+0.8871020
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+5
+
+</td>
+
+<td style="text-align:right;">
+
+10
+
+</td>
+
+<td style="text-align:right;">
+
+550
+
+</td>
+
+<td style="text-align:right;">
+
+0.8871513
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+5
+
+</td>
+
+<td style="text-align:right;">
+
+10
+
+</td>
+
+<td style="text-align:right;">
+
+575
+
+</td>
+
+<td style="text-align:right;">
+
+0.8871778
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+4
+
+</td>
+
+<td style="text-align:right;">
+
+10
+
+</td>
+
+<td style="text-align:right;">
+
+600
+
+</td>
+
+<td style="text-align:right;">
+
+0.8870901
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+4
+
+</td>
+
+<td style="text-align:right;">
+
+9
+
+</td>
+
+<td style="text-align:right;">
+
+625
+
+</td>
+
+<td style="text-align:right;">
+
+0.8872461
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+5
+
+</td>
+
+<td style="text-align:right;">
+
+10
+
+</td>
+
+<td style="text-align:right;">
+
+650
+
+</td>
+
+<td style="text-align:right;">
+
+0.8873770
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+5
+
+</td>
+
+<td style="text-align:right;">
+
+9
+
+</td>
+
+<td style="text-align:right;">
+
+675
+
+</td>
+
+<td style="text-align:right;">
+
+0.8872075
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+4
+
+</td>
+
+<td style="text-align:right;">
+
+10
+
+</td>
+
+<td style="text-align:right;">
+
+700
+
+</td>
+
+<td style="text-align:right;">
+
+0.8872608
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+``` r
+best_tune <- best_tune[which.max(best_tune$r_squared),]
+best_tune
+```
+
+    ##   mtry min_node.size Num_Trees r_squared
+    ## 7    5            10       650  0.887377
+
+ 
+
+El grid search ha proporcionado un ligero incremento en la precisión del
+modelo. Podemos entrenar el modelo final con los hiperparámetros
+seleccionados.
+
+``` r
+# Final random forest model
+RF_housing <- ranger(frmla, 
+                housing_reg, 
+                num.trees = best_tune$Num_Trees,
+                mtry = best_tune$mtry,
+                min.node.size = best_tune$min_node.size,
+                importance = "impurity_corrected",
+                )
+RF_housing
+```
+
+    ## Ranger result
+    ## 
+    ## Call:
+    ##  ranger(frmla, housing_reg, num.trees = best_tune$Num_Trees, mtry = best_tune$mtry,      min.node.size = best_tune$min_node.size, importance = "impurity_corrected",      ) 
+    ## 
+    ## Type:                             Regression 
+    ## Number of trees:                  650 
+    ## Sample size:                      21613 
+    ## Number of independent variables:  10 
+    ## Mtry:                             5 
+    ## Target node size:                 10 
+    ## Variable importance mode:         impurity_corrected 
+    ## Splitrule:                        variance 
+    ## OOB prediction error (MSE):       0.03318426 
+    ## R squared (OOB):                  0.8803725
+
+ 
+
+### 3.3) Evaluación del modelo de Random Forest
+
+Vamos a evaluar el modelo siguiendo los mismos pasos de evaluación que
+los modelos anteriores. En primer lugar las métricas del precisión del
+modelo en comparación con el resto de modelos.
+
+``` r
+# Model evaluation Metrics 
+temp <- data.frame(
+  "Model" = "Random Forest Reg.",
+  "MAE" = Metrics::mae(housing_reg$price, RF_housing$predictions),
+  "RMSE" = Metrics::rmse(housing_reg$price, RF_housing$predictions),
+  "MAPE"= Metrics::mape(housing_reg$price, RF_housing$predictions),
+  "Correlation" = RF_housing$r.squared)
+
+Models <- rbind(Models, temp)
+```
+
+<table>
+
+<thead>
+
+<tr>
+
+<th style="text-align:left;">
+
+Model
+
+</th>
+
+<th style="text-align:right;">
+
+MAE
+
+</th>
+
+<th style="text-align:right;">
+
+RMSE
+
+</th>
+
+<th style="text-align:right;">
+
+MAPE
+
+</th>
+
+<th style="text-align:right;">
+
+Correlation
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:left;">
+
+Multiple Linear Regression
+
+</td>
+
+<td style="text-align:right;">
+
+1.269822e+05
+
+</td>
+
+<td style="text-align:right;">
+
+2.024014e+05
+
+</td>
+
+<td style="text-align:right;">
+
+0.2586555
+
+</td>
+
+<td style="text-align:right;">
+
+0.6959011
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Mult. Linear Reg. Log scale
+
+</td>
+
+<td style="text-align:right;">
+
+2.007147e-01
+
+</td>
+
+<td style="text-align:right;">
+
+2.592308e-01
+
+</td>
+
+<td style="text-align:right;">
+
+0.0153774
+
+</td>
+
+<td style="text-align:right;">
+
+0.7576221
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:left;">
+
+Random Forest Reg.
+
+</td>
+
+<td style="text-align:right;">
+
+1.306765e-01
+
+</td>
+
+<td style="text-align:right;">
+
+1.821655e-01
+
+</td>
+
+<td style="text-align:right;">
+
+0.0100358
+
+</td>
+
+<td style="text-align:right;">
+
+0.8803725
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+ 
+
+Podemos observar que la *r-squared* del modelo de regresión empleando un
+random forest es significativamente superior al del resto de modelos. El
+siguiente paso es evaluar la distribución de las predicciones y valores
+conocidos, y la distribución de residuals
+
+``` r
+# New model as data frame
+RF_DF <- data.frame("Predicted" = RF_housing$predictions,
+                    "price" = housing_reg$price) %>% 
+  mutate(residuals = price - Predicted)
+
+# Scatter plot of correlation and residuals
+ggpubr::ggarrange(
+  (
+    RF_DF %>% ggplot(aes(Predicted, price)) +
+      geom_point(alpha = .2) +
+      geom_line(aes(y = Predicted), size = 1, col = "blue") +
+      coord_fixed() + 
+      theme_light() +
+      xlab("Predicted") +
+      ylab("Price")),
+  
+  (
+    RF_DF %>% ggplot(aes(price, residuals)) +
+     geom_point(alpha = .2) +
+      ylab("Residuals") +
+      xlab("Price") +
+      coord_fixed() +
+      theme_light()
+    ),
+  ncol = 2, align = "h")
+```
+
+![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-36-1.png)<!-- -->
+ 
+
+Visualmente podemos observar que el modelo de Random Forests aparenta
+ser muy adecuado ya que la línea de predicción pasa por el centro de los
+valores, que aparecen distrribuidos de forma casi homogénea. En el
+*residuals plot* los valores también aparecen distribuidos de manera
+sistemática, un modelo de regresión lineal mustra una baja correlación
+lineal de 0.19 entre los residuals y el precio (el más bajo de los
+modelos).
+
+``` r
+# linear regression RF model and residuals
+summary(lm(residuals ~ price, RF_DF))
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = residuals ~ price, data = RF_DF)
+    ## 
+    ## Residuals:
+    ##      Min       1Q   Median       3Q      Max 
+    ## -1.16257 -0.09307  0.00036  0.09344  1.08137 
+    ## 
+    ## Coefficients:
+    ##              Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept) -1.946337   0.027710  -70.24   <2e-16 ***
+    ## price        0.149343   0.002122   70.38   <2e-16 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 0.1643 on 21611 degrees of freedom
+    ## Multiple R-squared:  0.1865, Adjusted R-squared:  0.1864 
+    ## F-statistic:  4953 on 1 and 21611 DF,  p-value: < 2.2e-16
+
+ 
+
+La representación de densidad de los residuals ayuda a confirmar que el
+modelo no está sistemáticamente sesgado. La mediana de los residuals
+está centrada en torno a 0, con una distribución simétrica hacia ambos
+lados. Aún así se observa que la cola de los residuals se alarga
+ligeramente hacia valores negativos.
+
+``` r
+# Residuals density plot
+RF_DF %>% ggplot(aes(residuals)) +
+  geom_density(color = "blue", fill = "lightblue")  +
+  theme_light() +
+  geom_vline(xintercept = 0) + geom_hline(yintercept = 0) + 
+  geom_vline(xintercept = median(RF_DF$residuals), color = "red") + 
+  xlab("Residuals") + ylab("Density")
+```
+
+![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-38-1.png)<!-- -->
+ 
+
+Por último vamos a visualizar la importancia relativa de cada una de las
+variables sobre el precio de la vivienda.
+
+``` r
+Var_Imp <- as.data.frame(RF_housing$variable.importance)
+colnames(Var_Imp)[1] <- "Importance"
+Var_Imp <- Var_Imp %>% mutate(Variable = rownames(Var_Imp)) %>% 
+  arrange(-Importance)
+
+
+Var_Imp %>% ggplot(aes(reorder(Variable, Importance),  Importance, fill = Importance))+ 
+  geom_bar(stat= "identity", position = "dodge") + 
+  coord_flip() +
+  ylab("Variable Importance") +
+  xlab("") +
+  guides(fill = FALSE)+
+  scale_fill_gradient(low = "red", high = "blue")
+```
+
+![](Predicción-precio-viviendas_files/figure-gfm/unnamed-chunk-39-1.png)<!-- -->
+ 
+
+Como podemos ver, las variables consideradas importantes por el Random
+Forest coinciden en buena medida con las del *best sub-set selection* de
+la regresión lineal múltiple, teniendo gran peso la posición con
+respecto a la latitud de la vivienda, los metros cuadrados habitables, y
+el la evaluación (*grade*).
 
 ## Bibliografía
 
